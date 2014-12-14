@@ -7,6 +7,9 @@ organization := "me.jeffmay"
 
 name := "bson-adt"
 
+version := "1.0.0"
+
+// TODO: Cross-compile
 scalaVersion := "2.10.4"
 
 lazy val casbahVersion = SettingKey[String]("casbahVersion")
