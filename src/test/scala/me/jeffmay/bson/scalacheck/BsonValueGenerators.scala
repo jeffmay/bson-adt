@@ -3,7 +3,9 @@ package me.jeffmay.bson.scalacheck
 import me.jeffmay.bson._
 import org.bson.types.{Binary, ObjectId}
 import org.joda.time.{DateTime, DateTimeZone}
-import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.{Shrink, Arbitrary, Gen}
+import org.scalacheck.Arbitrary._
+import org.scalacheck.Shrink._
 
 import scala.language.implicitConversions
 import scala.util.matching.Regex
@@ -25,6 +27,22 @@ trait BsonValueGenerators extends RegexGenerators {
     )
   }
 
+  private def halves[T](n: T)(implicit integral: Integral[T]): Stream[T] = {
+    import integral._
+    if (n == zero) Stream.empty
+    else n #:: halves(n / fromInt(2))
+  }
+
+  private def shrinkSameSign[T](value: T)(implicit integral: Integral[T]): Stream[T] = {
+    import integral._
+    zero #:: halves(value).map(value - _)
+  }
+
+  implicit val shrinkDateTime: Shrink[DateTime] = Shrink { datetime =>
+    val shrinkMillis = shrinkSameSign(datetime.getMillis)
+    shrinkMillis map { new DateTime(_, datetime.getZone) }
+  }
+
   implicit def arbBinary(implicit arbBytes: Arbitrary[Array[Byte]]): Arbitrary[Binary] = Arbitrary {
     arbBytes.arbitrary.map(new Binary(_))
   }
@@ -35,11 +53,58 @@ trait BsonValueGenerators extends RegexGenerators {
     } yield new ObjectId(new java.util.Date(when.getMillis))
   }
 
+  // The only way in which the ObjectId could cause a property to fail is if someone is using
+  // the timestamp from the ObjectId in a test.
+  implicit val shrinkObjectId: Shrink[ObjectId] = Shrink { oid =>
+    val shrinkMillis = shrinkSameSign(oid.getTime)
+    shrinkMillis map { millis => new ObjectId(new java.util.Date(millis)) }
+  }
+
   implicit val arbBsonValue: Arbitrary[BsonValue] = Arbitrary {
     for {
       depth <- Gen.choose(0, 3)
       value <- genBsonValue(depth)
     } yield value
+  }
+
+  implicit val arbBsonPrimitive: Arbitrary[BsonPrimitive] = Arbitrary {
+    genBsonPrimitive()
+  }
+
+  implicit val arbBsonBoolean: Arbitrary[BsonBoolean] = Arbitrary {
+    Gen.oneOf(true, false) map BsonBoolean
+  }
+
+  implicit val arbBsonInt: Arbitrary[BsonInt] = Arbitrary {
+    arbitrary[Int] map BsonInt
+  }
+
+  implicit val arbBsonLong: Arbitrary[BsonLong] = Arbitrary {
+    arbitrary[Long] map BsonLong
+  }
+
+  implicit val arbBsonNumber: Arbitrary[BsonNumber] = Arbitrary {
+    arbitrary[Double] map BsonNumber
+  }
+
+  implicit val arbBsonString: Arbitrary[BsonString] = Arbitrary {
+    arbitrary[String] map BsonString
+  }
+
+  implicit val arbBsonBinary: Arbitrary[BsonBinary] = Arbitrary {
+    arbitrary[Array[Byte]] map BsonBinary
+  }
+
+  implicit val arbBsonRegex: Arbitrary[BsonRegex] = Arbitrary {
+    arbitrary[Regex] map BsonRegex
+  }
+
+  implicit val arbBsonObjectId: Arbitrary[BsonObjectId] = Arbitrary {
+    arbitrary[ObjectId] map BsonObjectId
+  }
+
+  implicit def arbBsonDate(implicit arbDateTime: Arbitrary[DateTime]): Arbitrary[BsonDate] = Arbitrary {
+    arbDateTime.arbitrary map BsonDate
   }
 
   implicit val arbBsonArray: Arbitrary[BsonArray] = Arbitrary {
@@ -56,13 +121,73 @@ trait BsonValueGenerators extends RegexGenerators {
     } yield obj
   }
 
-  def genBson[A: BsonWrites](genValue: Gen[A]): Gen[BsonValue] = for {
+  implicit val shrinkBsonBoolean: Shrink[BsonBoolean] = Shrink { bson =>
+    shrink(bson.value) map BsonBoolean
+  }
+
+  implicit val shrinkBsonInt: Shrink[BsonInt] = Shrink { bson =>
+    shrink(bson.value) map BsonInt
+  }
+
+  implicit val shrinkBsonLong: Shrink[BsonLong] = Shrink { bson =>
+    shrinkSameSign(bson.value) map BsonLong
+  }
+
+  implicit val shrinkBsonNumber: Shrink[BsonNumber] = Shrink { bson =>
+    Stream(BsonNumber(0))  // just try 0 and give up
+  }
+
+  implicit val shrinkBsonString: Shrink[BsonString] = Shrink { bson =>
+    shrink(bson.value) map BsonString
+  }
+
+  implicit val shrinkBsonBinary: Shrink[BsonBinary] = Shrink { bson =>
+    shrink(bson.value) map BsonBinary
+  }
+
+  implicit val shrinkBsonDate: Shrink[BsonDate] = Shrink { bson =>
+    shrink(bson.value) map BsonDate
+  }
+
+  implicit val shrinkBsonObjectId: Shrink[BsonObjectId] = Shrink { bson =>
+    shrink(bson.value) map BsonObjectId
+  }
+
+  implicit val shrinkBsonArray: Shrink[BsonArray] = Shrink { bson =>
+    shrink[Seq[BsonValue]](bson.value) map { values =>
+      BsonArray(values)
+    }
+  }
+
+  implicit val shrinkBsonObject: Shrink[BsonObject] = Shrink { bson =>
+    shrink[Map[String, BsonValue]](bson.value) map { fields =>
+      BsonObject(fields)
+    }
+  }
+
+  implicit val shrinkBsonValue: Shrink[BsonValue] = Shrink {
+    case it: BsonObject => shrink(it)
+    case it: BsonArray => shrink(it)
+    case it: BsonBoolean => shrink(it)
+    case it: BsonInt => shrink(it)
+    case it: BsonLong => shrink(it)
+    case it: BsonNumber => shrink(it)
+    case it: BsonString => shrink(it)
+    case it: BsonObjectId => shrink(it)
+    case it: BsonBinary => shrink(it)
+    case it: BsonDate => shrink(it)
+    case it: BsonRegex => shrink(it)
+    case BsonNull => Stream.empty
+    case BsonUndefined() => Stream.empty
+  }
+
+  private def genBson[A: BsonWrites](genValue: Gen[A]): Gen[BsonPrimitive] = for {
     value <- genValue
-  } yield Bson.toBson(value)
+  } yield Bson.toBson(value).asInstanceOf[BsonPrimitive]
 
-  @inline def genBson[A: Arbitrary: BsonWrites]: Gen[BsonValue] = genBson(Arbitrary.arbitrary[A])
+  @inline private def genBson[A: Arbitrary: BsonWrites]: Gen[BsonPrimitive] = genBson(Arbitrary.arbitrary[A])
 
-  def genBsonPrimitive(): Gen[BsonValue] = Gen.oneOf(
+  def genBsonPrimitive(): Gen[BsonPrimitive] = Gen.oneOf(
     Gen.const(BsonNull),
     genBson[Boolean],
     genBson[Short],

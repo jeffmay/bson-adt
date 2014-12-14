@@ -3,14 +3,15 @@ package me.jeffmay.bson
 import me.jeffmay.bson.scalacheck.BsonValueGenerators
 import org.bson.types.ObjectId
 import org.joda.time.{DateTime, DateTimeZone}
+import org.scalatest.FlatSpec
 import org.scalatest.prop.PropertyChecks
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalautils.Tolerance
 
 import scala.util.matching.Regex
 
 class DefaultReadsSpec extends FlatSpec
 with PropertyChecks
-with Matchers
+with Tolerance
 with BsonValueGenerators {
 
   // Slightly more tolerant than the Machine Epsilon, but it'll do
@@ -19,71 +20,72 @@ with BsonValueGenerators {
   val doubleEpsilon: Double = 1E-14
 
   it should "read Boolean properly" in {
-    forAll(genBson[Boolean]) { bson =>
+    forAll { (bson: BsonBoolean) =>
       assert(bson.as[Boolean] == bson.value)
     }
   }
 
   it should "read Short properly" in {
-    forAll(genBson[Short]) { bson =>
-      assert(bson.as[Short] == bson.value)
+    forAll { (short: Short) =>
+      val bson = Bson.toBson(short)
+      assert(bson.as[Short] == short)
     }
   }
 
   it should "read Int properly" in {
-    forAll(genBson[Int]) { bson =>
+    forAll { (bson: BsonInt) =>
       assert(bson.as[Int] == bson.value)
     }
   }
 
   it should "read Long properly" in {
-    forAll(genBson[Long]) { bson =>
+    forAll { (bson: BsonLong) =>
       assert(bson.as[Long] == bson.value)
     }
   }
 
   it should "read Float properly" in {
-    forAll { (underlying: Float) =>
-      val bson = Bson.toBson(underlying)
-      assert(bson.as[Float] === (underlying +- floatEpsilon))
+    forAll { (float: Float) =>
+      val bson = Bson.toBson(float)
+      assert(bson.as[Float] === (float +- floatEpsilon))
     }
   }
 
   it should "read Double properly" in {
-    forAll { (underlying: Double) =>
-      val bson = Bson.toBson(underlying)
-      assert(bson.as[Double] === (underlying +- doubleEpsilon))
+    forAll { (double: Double) =>
+      val bson = Bson.toBson(double)
+      assert(bson.as[Double] === (double +- doubleEpsilon))
     }
   }
 
   it should "read BigDecimal properly" in {
-    forAll(genBson[Double]) { bson =>
+    forAll { (bson: BsonNumber) =>
       assert(BigDecimal(bson.as[Double]) == bson.as[BigDecimal])
     }
   }
 
   it should "read String properly" in {
-    forAll(genBson[String]) { bson =>
+    forAll { (bson: BsonString) =>
       assert(bson.as[String] == bson.value)
     }
   }
 
   it should "read Binary properly" in {
-    forAll(genBson[Array[Byte]]) { bson =>
+    forAll { (bson: BsonBinary) =>
       assert(bson.as[Array[Byte]] == bson.value)
     }
   }
 
   it should "read Regex properly" in {
-    forAll(genBson[Regex]) { bson =>
-      val expected = bson.asInstanceOf[BsonRegex].pattern
+    forAll { (bson: BsonRegex) =>
+      val expected = bson.pattern
       val actual = bson.as[Regex].pattern.pattern()
       assert(actual == expected)
     }
   }
 
   it should "read ObjectId properly" in {
-    forAll(genBson[ObjectId]) { bson =>
+    forAll { (bson: BsonObjectId) =>
       assert(bson.as[ObjectId] == bson.value)
     }
   }
@@ -95,15 +97,15 @@ with BsonValueGenerators {
   }
 
   it should "read DateTime in UTC properly" in {
-    forAll(genBson[DateTime]) { bson =>
-      val expected = bson.asInstanceOf[BsonDate].value withZone DateTimeZone.UTC
+    forAll { (bson: BsonDate) =>
+      val expected = bson.value withZone DateTimeZone.UTC
       assert(bson.as[DateTime] == expected)
     }
   }
 
-  it should "read Map[String, String] properly" in {
-    forAll(genBson[Map[String, String]]) { bson =>
-      val expected = bson.asInstanceOf[BsonObject].value mapValues (_.value)
+  it should "read Map[String, BsonValue] properly" in {
+    forAll { (expected: Map[String, String]) =>
+      val bson = Bson.toBson(expected)
       assert(bson.as[Map[String, String]] == expected)
     }
   }

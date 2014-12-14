@@ -48,7 +48,7 @@ sealed trait BsonValue {
    *
    * @param fieldName the name of the property to lookup
    * @return the resulting [[BsonValue]].
-   *         If the current node is not a BsonDocument or doesn't have the property,
+   *         If the current node is not a [[BsonObject]] or doesn't have the property,
    *         a [[BsonUndefined]] will be returned.
    */
   def \(fieldName: String): BsonValue = BsonUndefined(s"'$fieldName' is undefined on object: $this")
@@ -67,32 +67,47 @@ sealed trait BsonValue {
 
 }
 
-case class BsonBoolean(value: Boolean) extends BsonValue {
+/**
+ * Any [[BsonValue]] that can exist inside of another [[BsonContainer]], but has no children itself.
+ *
+ * @note this
+ */
+sealed trait BsonPrimitive extends BsonValue
+
+/**
+ * Any [[BsonValue]] that can potentially contain [[BsonPrimitive]] children.
+ */
+sealed trait BsonContainer extends BsonValue {
+
+  def children: Iterable[BsonValue]
+}
+
+case class BsonBoolean(value: Boolean) extends BsonPrimitive {
   override type $type = Boolean
   override def $type: Int = BSON.BOOLEAN
 }
 
-case class BsonNumber(value: Double) extends BsonValue {
+case class BsonNumber(value: Double) extends BsonPrimitive {
   override type $type = Double
   override def $type: Int = BSON.NUMBER
 }
 
-case class BsonInt(value: Int) extends BsonValue {
+case class BsonInt(value: Int) extends BsonPrimitive {
   override type $type = Int
   override def $type: Int = BSON.NUMBER_INT
 }
 
-case class BsonLong(value: Long) extends BsonValue {
+case class BsonLong(value: Long) extends BsonPrimitive {
   override type $type = Long
   override def $type: Int = BSON.NUMBER_LONG
 }
 
-case class BsonString(value: String) extends BsonValue {
+case class BsonString(value: String) extends BsonPrimitive {
   override type $type = String
   override def $type: Int = BSON.STRING
 }
 
-case class BsonBinary(value: Array[Byte]) extends BsonValue with Proxy {
+case class BsonBinary(value: Array[Byte]) extends BsonPrimitive with Proxy {
   override type $type = Array[Byte]
   override def $type: Int = BSON.BINARY
 
@@ -110,7 +125,7 @@ case class BsonBinary(value: Array[Byte]) extends BsonValue with Proxy {
  *
  * @param value the regex value
  */
-case class BsonRegex(value: Regex) extends BsonValue with Proxy {
+case class BsonRegex(value: Regex) extends BsonPrimitive with Proxy {
   override type $type = Regex
   override def $type: Int = BSON.REGEX
 
@@ -119,28 +134,32 @@ case class BsonRegex(value: Regex) extends BsonValue with Proxy {
   @inline final override def self: Any = pattern
 }
 
-case class BsonObjectId(value: ObjectId) extends BsonValue {
+case class BsonObjectId(value: ObjectId) extends BsonPrimitive {
   override type $type = ObjectId
   override def $type: Int = BSON.OID
 }
 
-case class BsonDate(value: DateTime) extends BsonValue {
+case class BsonDate(value: DateTime) extends BsonPrimitive {
   override type $type = DateTime
   override def $type: Int = BSON.DATE
 }
 
-case class BsonArray(value: Seq[BsonValue] = Nil) extends BsonValue {
+case class BsonArray(value: Seq[BsonValue] = Nil) extends BsonContainer {
   override type $type = Seq[BsonValue]
   override def $type: Int = BSON.ARRAY
+
+  @inline final override def children: Iterable[BsonValue] = value
 
   override def pruned: BsonArray = BsonArray(
     value filterNot (_.equalsNull) map (_.pruned)
   )
 }
 
-case class BsonObject(value: Map[String, BsonValue] = Map.empty) extends BsonValue {
+case class BsonObject(value: Map[String, BsonValue] = Map.empty) extends BsonContainer {
   override type $type = Map[String, BsonValue]
   override def $type: Int = BSON.OBJECT
+
+  override def children: Iterable[BsonValue] = value.values
 
   override def \(fieldName: String): BsonValue = {
     value.getOrElse(fieldName, super.\(fieldName))
@@ -154,7 +173,7 @@ case class BsonObject(value: Map[String, BsonValue] = Map.empty) extends BsonVal
 /**
  * Represents a Bson `null` value.
  */
-case object BsonNull extends BsonValue {
+case object BsonNull extends BsonPrimitive {
   override def value: Null = null  // throw new NullPointerException?
   override type $type = Null
   override def $type: Int = BSON.NULL

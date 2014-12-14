@@ -14,7 +14,7 @@ import scala.util.matching.Regex
 
 class CasbahImplicitsSpec extends FunSpec with PropertyChecks with BsonValueGenerators {
 
-  describe("bsonValue") {
+  describe("CasbahImplicits.bsonValue") {
 
     it("should convert null to BsonNull") {
       assert(bsonValue(null) == BsonNull)

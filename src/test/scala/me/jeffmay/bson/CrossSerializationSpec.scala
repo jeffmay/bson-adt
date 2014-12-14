@@ -2,16 +2,15 @@ package me.jeffmay.bson
 
 import me.jeffmay.bson.scalacheck.BsonValueGenerators
 import org.scalacheck.Gen
+import org.scalatest.FlatSpec
 import org.scalatest.prop.PropertyChecks
-import org.scalatest.{FlatSpec, Matchers}
 
 class CrossSerializationSpec extends FlatSpec
-with Matchers
 with PropertyChecks
 with BsonValueGenerators {
 
   it should "write the same unnested Map of Bson values that it reads" in {
-    forAll(genBsonObject(depth = 0)) { bson =>
+    forAll(genBsonObject(depth = 0)) { (bson: BsonObject) =>
       val map = Bson.fromBson[Map[String, BsonValue]](bson)
       val obj = Bson.toBson(map)
       assert(obj == bson)

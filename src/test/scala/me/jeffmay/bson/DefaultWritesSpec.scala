@@ -5,15 +5,15 @@ import java.util
 import me.jeffmay.bson.scalacheck.BsonValueGenerators
 import org.bson.types.ObjectId
 import org.joda.time.{DateTime, DateTimeZone}
-import org.scalacheck.Arbitrary
+import org.scalatest.FlatSpec
 import org.scalatest.prop.PropertyChecks
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalautils.Tolerance
 
 import scala.util.matching.Regex
 
 class DefaultWritesSpec extends FlatSpec
-with Matchers
 with PropertyChecks
+with Tolerance
 with BsonValueGenerators {
 
   // Slightly more tolerant than the Machine Epsilon, but it'll do
