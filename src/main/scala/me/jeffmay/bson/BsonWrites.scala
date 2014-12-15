@@ -17,12 +17,12 @@ import scala.util.matching.Regex
 trait BsonObjectWrites[-A] extends BsonWrites[A] {
 
   /**
-   * Convert the object into a BsonObject
+   * Convert the object into a [[BsonObject]]
    */
   override def writes(model: A): BsonObject
 
   /**
-   * A writer that prunes null fields from the resulting BsonObject.
+   * A writer that prunes null fields from the resulting [[BsonObject]].
    */
   override def prune: BsonObjectWrites[A] = {
     BsonObjectWrites[A] { a =>
@@ -50,7 +50,7 @@ object BsonObjectWrites {
 }
 
 /**
- * Bson serializer: write an implicit to define a BsonValue serializer for any Scala type
+ * Bson serializer: write an implicit to define a [[BsonValue]] serializer for any Scala type
  */
 @implicitNotFound("No Bson serializer found for type ${A}. " +
   "Implement or import an implicit BsonWrites or BsonFormat for this type."
@@ -58,12 +58,12 @@ object BsonObjectWrites {
 trait BsonWrites[-A] {
 
   /**
-   * Convert the object into a BsonValue
+   * Convert the object into a [[BsonValue]]
    */
   def writes(value: A): BsonValue
 
   /**
-   * Transform the resulting BsonValue using given function
+   * Transform the resulting [[BsonValue]] using given function
    */
   def transform(transformer: BsonValue => BsonValue): BsonWrites[A] = {
     BsonWrites[A] { a =>
@@ -73,7 +73,7 @@ trait BsonWrites[-A] {
   }
 
   /**
-   * Transform the resulting BsonValue using another writer
+   * Transform the resulting [[BsonValue]] using another writer
    */
   def transform(transformer: BsonWrites[BsonValue]): BsonWrites[A] = {
     BsonWrites[A] { a =>
@@ -83,7 +83,7 @@ trait BsonWrites[-A] {
   }
 
   /**
-   * A writer that prunes null fields from the resulting BsonValue.
+   * A writer that prunes null fields from the resulting [[BsonValue]].
    */
   def prune: BsonWrites[A] = transform(_.pruned)
 }

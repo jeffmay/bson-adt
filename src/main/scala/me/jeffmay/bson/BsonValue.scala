@@ -41,7 +41,10 @@ sealed trait BsonValue {
    *
    * @return Some[T] if it succeeds, None if it fails.
    */
-  def asOpt[T](implicit reader: BsonReads[T]): Option[T] = Try(reader reads this).toOption
+  def asOpt[T](implicit reader: BsonReads[T]): Option[T] = Try(reader reads this).toOption.filter {
+    case BsonUndefined() => false
+    case _ => true
+  }
 
   /**
    * Return the property corresponding to the fieldName, supposing we have a [[BsonObject]].

@@ -20,7 +20,7 @@ import scala.util.matching.Regex
 trait BsonReads[A] {
 
   /**
-   * Convert the JsValue into an object of type A
+   * Convert the [[BsonValue]] into an object of type [[A]]
    */
   def reads(bson: BsonValue): A
 
@@ -235,6 +235,13 @@ trait DefaultReads {
       case BsonNumber(value) => value
       case _ => throw new UnexpectedBsonException("error.expected.number", bson)
     }
+  }
+
+  /**
+   * Generic exception wrapping deserializer.
+   */
+  implicit def tryReads[A](implicit aReader: BsonReads[A]): BsonReads[Try[A]] = new BsonReads[Try[A]] {
+    override def reads(bson: BsonValue): Try[A] = Try(aReader reads bson)
   }
 
   /**

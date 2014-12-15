@@ -7,7 +7,7 @@ organization := "me.jeffmay"
 
 name := "bson-adt"
 
-version := "1.0.0"
+version := "1.0.1"
 
 // TODO: Cross-compile
 scalaVersion := "2.10.4"
