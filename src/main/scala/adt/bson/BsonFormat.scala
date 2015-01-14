@@ -1,5 +1,6 @@
 package adt.bson
 
+import scala.annotation.implicitNotFound
 import scala.language.implicitConversions
 
 /**
@@ -10,6 +11,9 @@ import scala.language.implicitConversions
  * required to store a document in the database, this is a type-safe way to insure
  * that the resulting Bson will be suitable as a document.
  */
+@implicitNotFound("No Bson object format found for type ${A}. " +
+  "Implement or import an implicit BsonObjectFormat for this type."
+)
 trait BsonObjectFormat[A] extends BsonFormat[A] with BsonObjectWrites[A]
 
 object BsonObjectFormat {
@@ -27,6 +31,9 @@ object BsonObjectFormat {
 /**
  * A combined Bson serializer / deserializer for any type of value.
  */
+@implicitNotFound("No Bson format found for type ${A}. " +
+  "Implement or import an implicit BsonFormat for this type."
+)
 trait BsonFormat[A] extends BsonReads[A] with BsonWrites[A]
 
 object BsonFormat {
