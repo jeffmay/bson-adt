@@ -1,7 +1,7 @@
-package me.jeffmay.bson.casbah
+package adt.bson.casbah
 
 import com.mongodb.casbah.Imports._
-import me.jeffmay.bson._
+import adt.bson._
 
 import scala.language.{higherKinds, implicitConversions}
 
@@ -10,7 +10,7 @@ import scala.language.{higherKinds, implicitConversions}
  */
 trait CasbahImplicits {
 
-  import me.jeffmay.bson.casbah.CasbahImplicits._
+  import adt.bson.casbah.CasbahImplicits._
 
   implicit def toBsonObjectOps(bson: BsonObject): BsonObjectOps = new BsonObjectOps(bson)
 

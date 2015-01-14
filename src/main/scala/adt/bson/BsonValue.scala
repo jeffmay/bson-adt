@@ -1,4 +1,4 @@
-package me.jeffmay.bson
+package adt.bson
 
 import org.bson.BSON
 import org.bson.types.ObjectId

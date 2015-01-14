@@ -1,10 +1,10 @@
-package me.jeffmay.bson.casbah
+package adt.bson.casbah
 
 import java.util.Date
 
-import me.jeffmay.bson._
-import me.jeffmay.bson.casbah.CasbahImplicits._
-import me.jeffmay.bson.scalacheck.BsonValueGenerators
+import adt.bson._
+import adt.bson.casbah.CasbahImplicits._
+import adt.bson.scalacheck.BsonValueGenerators
 import org.bson.types.{Binary, ObjectId}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.FunSpec

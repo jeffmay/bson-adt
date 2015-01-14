@@ -1,4 +1,4 @@
-package me.jeffmay.bson
+package adt.bson
 
 // TODO: Add path information to this error message
 /**

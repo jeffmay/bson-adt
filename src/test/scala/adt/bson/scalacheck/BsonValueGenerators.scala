@@ -1,6 +1,6 @@
-package me.jeffmay.bson.scalacheck
+package adt.bson.scalacheck
 
-import me.jeffmay.bson._
+import adt.bson._
 import org.bson.types.{Binary, ObjectId}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalacheck.{Shrink, Arbitrary, Gen}

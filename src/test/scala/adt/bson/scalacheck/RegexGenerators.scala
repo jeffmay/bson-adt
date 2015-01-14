@@ -1,4 +1,4 @@
-package me.jeffmay.bson.scalacheck
+package adt.bson.scalacheck
 
 import java.util.regex.Pattern
 

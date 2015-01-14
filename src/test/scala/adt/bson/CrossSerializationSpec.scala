@@ -1,6 +1,6 @@
-package me.jeffmay.bson
+package adt.bson
 
-import me.jeffmay.bson.scalacheck.BsonValueGenerators
+import adt.bson.scalacheck.BsonValueGenerators
 import org.scalacheck.Gen
 import org.scalatest.FlatSpec
 import org.scalatest.prop.PropertyChecks

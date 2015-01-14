@@ -1,4 +1,4 @@
-package me.jeffmay.bson.casbah
+package adt.bson.casbah
 
 import com.mongodb.casbah.Imports._
 import org.joda.time.{DateTime, DateTimeZone}

@@ -1,6 +1,6 @@
-package me.jeffmay.bson
+package adt.bson
 
-import me.jeffmay.bson.scalacheck.BsonValueGenerators
+import adt.bson.scalacheck.BsonValueGenerators
 import org.bson.types.ObjectId
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.FlatSpec
