@@ -7,9 +7,9 @@ organization := "me.jeffmay"
 
 name := "bson-adt"
 
-version := "1.0.1"
+version := "1.1.0"
 
-// TODO: Cross-compile
+// TODO: Cross-compile with 2.11
 scalaVersion := "2.10.4"
 
 lazy val casbahVersion = SettingKey[String]("casbahVersion")
@@ -33,4 +33,11 @@ publishArtifact in(Test, packageBin) := true
 // enable publishing the test sources jar
 publishArtifact in(Test, packageSrc) := true
 
-scalacOptions ++= Seq("-Xfatal-warnings", "-feature")
+scalacOptions ++= Seq(
+  "-feature",
+  "-deprecation",
+  "-Xfatal-warnings",
+  "-Xlint",
+  "-Ywarn-dead-code",
+  "-encoding", "UTF-8"
+)
