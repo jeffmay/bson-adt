@@ -26,6 +26,15 @@ trait CasbahImplicits {
 
   implicit def toDBObjectBsonOps(dbo: DBObject): DBObjectBsonOps = new DBObjectBsonOps(dbo)
 
+  /**
+   * Attempt to convert a value from (or suitable for) Mongo to a [[BsonValue]].
+   *
+   * @note this will convert values from Mongo / Casbah or values that can be serialized
+   *       by Mongo's default serializers
+   *
+   * @return the parsed [[BsonValue]]
+   */
+  @throws[MatchError]("when the argument cannot be converted to a BsonValue")
   def bsonValue(value: Any): BsonValue = value match {
     case null => BsonNull
     case x: String => BsonString(x)
@@ -35,11 +44,11 @@ trait CasbahImplicits {
     case x: java.lang.Long => BsonLong(x)
     case x: java.lang.Double => BsonNumber(x)
     case x: java.lang.Float => BsonNumber(x.toDouble)
-    case DBBinary(bin) => BsonBinary(bin)
-    case DBRegex(re) => BsonRegex(re)
-    case DBDate(date) => BsonDate(date)
-    case DBObject(dbo) => dbo.toBsonObject
-    case DBList(arr) => arr.toBsonArray
+    case CasbahDBExtractors.DBBinary(bin) => BsonBinary(bin)
+    case CasbahDBExtractors.DBRegex(re) => BsonRegex(re)
+    case CasbahDBExtractors.DBDate(date) => BsonDate(date)
+    case CasbahDBExtractors.DBObject(dbo) => dbo.toBsonObject
+    case CasbahDBExtractors.DBList(arr) => arr.toBsonArray
     case _ => throw new MatchError(
       s"No conversion to BsonValue for instance of ${value.getClass.getName}: $value. " +
       "This is programmer error. Please update CasbahImplicits.bsonValue to support this type"
@@ -47,9 +56,26 @@ trait CasbahImplicits {
   }
 
   /**
-   * Convert a Bson Value to a value that is safe for Casbah's Mongo driver.
+   * Attempt to convert a document to a [[BsonObject]].
    *
-   * Exists for consistency with dbObject method.
+   * This is useful when you know that you want to parse a document.
+   *
+   * @note this will convert [[com.mongodb.DBObject]]s or maps of values that can be serialized
+   *       by Mongo's default serializers
+   *
+   * @return the parsed [[BsonObject]]
+   */
+  @throws[MatchError]("when the argument cannot be converted to a BsonValue")
+  def bsonObject(value: Any): BsonObject = value match {
+    case DBObject(dbo) => dbo.toBsonObject
+    case _ => throw new MatchError(
+      s"No conversion to BsonValue for instance of ${value.getClass.getName}: $value. " +
+        "This is programmer error. Please update CasbahImplicits.bsonValue to support this type"
+    )
+  }
+
+  /**
+   * Safely convert a [[BsonValue]] to a value that is safe for Casbah's Mongo driver.
    *
    * @return the underlying value as Mongo would store it.
    */
@@ -62,7 +88,7 @@ trait CasbahImplicits {
       case _ => bson.value
     }
     assert(
-      DBValue matches value,
+      CasbahDBExtractors.DBValue.matches(value),
       s"Invalid DBValue conversion result for $bson" +
       "This is programmer error. Please update CasbahImplicits.dbValue to handle this type"
     )
@@ -70,16 +96,14 @@ trait CasbahImplicits {
   }
 
   /**
-   * Convert a value to a DBObject instead of a BsonObject using a Bson writer.
+   * Convert a BsonObject to a DBObject.
    *
-   * Useful when you can't trust the implicit conversion to apply.
+   * Useful when you want to refer to documents as [[BsonObject]] and want to use helpers
+   * that return the right Casbah type for queries and storage.
    */
-  def dbObject[A](value: A, pruned: Boolean = false)(implicit writer: BsonObjectWrites[A]): DBObject = {
-    var bson = writer writes value
-    if (pruned) {
-      bson = bson.pruned
-    }
-    bson.toDBObject
+  def dbObject(bson: BsonObject): DBObject = {
+    val fields: List[(String, Any)] = bson.value.mapValues(dbValue).toList
+    MongoDBObject(fields)
   }
 
 }
@@ -88,12 +112,9 @@ object CasbahImplicits extends CasbahImplicits {
   
   class BsonObjectOps(val bson: BsonObject) extends AnyVal {
 
-    def toDBObject: DBObject = {
-      val fields: List[(String, Any)] = bson.value.mapValues(dbValue).toList
-      MongoDBObject(fields)
-    }
+    @inline final def toDBObject: DBObject = dbObject(bson)
 
-    def toMongoDBObject: MongoDBObject = toDBObject
+    @inline final def toMongoDBObject: MongoDBObject = dbObject(bson)
 
   }
 
@@ -186,7 +207,7 @@ object CasbahImplicits extends CasbahImplicits {
      * conversion to BsonValue, which has a .as[A] method
      */
     def readFieldAs[A](fieldName: String)(implicit reader: BsonReads[A]): A = {
-      reader reads bsonValue(DBValue(dbo get fieldName))
+      reader reads bsonValue(CasbahDBExtractors.DBValue(dbo.get(fieldName)))
     }
   }
 }
