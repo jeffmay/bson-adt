@@ -7,7 +7,7 @@ organization := "me.jeffmay"
 
 name := "bson-adt"
 
-version := "1.1.0"
+version := "1.1.1"
 
 // TODO: Cross-compile with 2.11
 scalaVersion := "2.10.4"
@@ -25,7 +25,11 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-functional" % "2.4.0-M2"
 )
 
+// disable compilation of ScalaDocs, since this always breaks on links
 sources in(Compile, doc) := Seq.empty
+
+// disable publishing empty ScalaDocs
+publishArtifact in (Compile, packageDoc) := false
 
 // enable publishing the jar produced by `test:package`
 publishArtifact in(Test, packageBin) := true
@@ -41,3 +45,7 @@ scalacOptions ++= Seq(
   "-Ywarn-dead-code",
   "-encoding", "UTF-8"
 )
+
+bintraySettings ++ bintrayPublishSettings
+
+licenses += ("Apache-2.0", url("http://opensource.org/licenses/apache-2.0"))
