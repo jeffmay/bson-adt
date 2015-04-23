@@ -1,5 +1,6 @@
-package adt.bson
+package adt.bson.mongodb
 
+import adt.bson.mongodb
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 
@@ -23,7 +24,7 @@ trait DBValueExtractors {
   val DBBinary: DBExtractor[DBBinaryType]
   val DBRegex: DBExtractor[DBRegexType]
   val DBDate: DBExtractor[DBDateType]
-  val DBValue: DBCompanion[Any, DBValue]
+  val DBValue: DBCompanion[Any, mongodb.DBValue]
 }
 
 trait DefaultDBValueExtractor {
@@ -43,7 +44,7 @@ trait DefaultDBValueExtractor {
      * @throws IllegalArgumentException if the type of value given is not supported by MongoDB's default serializers
      */
     @throws[IllegalArgumentException]("if the type of value given is not supported by MongoDB's default serializers")
-    override def apply(value: Any): DBValue = {
+    override def apply(value: Any): mongodb.DBValue = {
       this.unapply(value) getOrElse {
         val className = Option(value).map(_.getClass.getName) getOrElse "Null"
         throw new IllegalArgumentException(
@@ -75,7 +76,7 @@ trait DefaultDBValueExtractor {
      * This will filter out any unknown types of values and provide a type-safe wrapper for the return value.
      */
     @tailrec
-    override def unapply(value: Any): Option[DBValue] = value match {
+    override def unapply(value: Any): Option[mongodb.DBValue] = value match {
       case None | null => Some(new DBValue(null))  // null is an acceptable value in Mongo
       case Some(x) => unapply(x)
       case x: String => Some(new DBValue(x))

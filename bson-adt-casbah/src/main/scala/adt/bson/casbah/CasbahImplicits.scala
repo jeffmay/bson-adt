@@ -1,7 +1,10 @@
 package adt.bson.casbah
 
-import com.mongodb.casbah.Imports._
 import adt.bson._
+import adt.bson.mongodb.DBValue
+import com.mongodb.casbah.Implicits._
+import com.mongodb.casbah.commons.{MongoDBList, MongoDBObject}
+import org.bson.types.ObjectId
 
 import scala.language.{higherKinds, implicitConversions}
 
@@ -24,7 +27,7 @@ trait CasbahImplicits {
 
   implicit def toDBObjectBsonOps(dbo: MongoDBObject): DBObjectBsonOps = new DBObjectBsonOps(dbo)
 
-  implicit def toDBObjectBsonOps(dbo: DBObject): DBObjectBsonOps = new DBObjectBsonOps(dbo)
+  implicit def toDBObjectBsonOps(dbo: com.mongodb.DBObject): DBObjectBsonOps = new DBObjectBsonOps(dbo)
 
   /**
    * Attempt to convert a value from (or suitable for) Mongo to a [[BsonValue]].
@@ -101,7 +104,7 @@ trait CasbahImplicits {
    * Useful when you want to refer to documents as [[BsonObject]] and want to use helpers
    * that return the right Casbah type for queries and storage.
    */
-  def dbObject(bson: BsonObject): DBObject = {
+  def dbObject(bson: BsonObject): com.mongodb.DBObject = {
     val fields: List[(String, Any)] = bson.value.mapValues(dbValue).toList
     MongoDBObject(fields)
   }
@@ -112,7 +115,7 @@ object CasbahImplicits extends CasbahImplicits {
   
   class BsonObjectOps(val bson: BsonObject) extends AnyVal {
 
-    @inline final def toDBObject: DBObject = dbObject(bson)
+    @inline final def toDBObject: com.mongodb.DBObject = dbObject(bson)
 
     @inline final def toMongoDBObject: MongoDBObject = dbObject(bson)
 

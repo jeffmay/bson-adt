@@ -1,10 +1,8 @@
-import sbt._
-import sbt.Keys._
 
 lazy val commonRootSettings = Seq(
   organization := "me.jeffmay",
   organizationName := "Jeff May",
-  version := "1.2.0",
+  version := "1.3.0",
   crossScalaVersions := Seq("2.11.6", "2.10.4")
 )
 
@@ -55,26 +53,27 @@ lazy val `bson-adt-core` = (project in file("bson-adt-core")).settings(common).s
   name := "bson-adt-core",
   libraryDependencies ++= Seq(
     "com.typesafe.play" %% "play-functional" % "2.4.0-M2",
-    "org.mongodb" % "mongo-java-driver" % "2.13.1"
+    "org.mongodb" % "bson" % "3.0.0"
   )
 )
 
-lazy val `bson-adt-casbah`: Project = (project in file("bson-adt-casbah")).settings(common).settings(
+lazy val `bson-adt-mongo2` = (project in file("bson-adt-mongo2")).settings(common).settings(
+  name := "bson-adt-mongo2",
+  libraryDependencies ++= Seq(
+    "com.typesafe.play" %% "play-functional" % "2.4.0-M2",
+    "org.mongodb" % "mongo-java-driver" % "2.13.1"
+  )
+).dependsOn(
+    `bson-adt-core` % "compile->compile;test->test"
+  )
+
+lazy val `bson-adt-casbah` = (project in file("bson-adt-casbah")).settings(common).settings(
   name := "bson-adt-casbah",
   libraryDependencies ++= Seq(
     "org.mongodb" %% "casbah-core" % "2.8.0",
     "org.mongodb" %% "casbah-query" % "2.8.0"
   )
 ).dependsOn(
-    `bson-adt-core` % "compile->compile;test->test"
-  )
-
-lazy val `bson-adt-rxmongo`: Project = (project in file("bson-adt-rxmongo")).settings(common).settings(
-  name := "bson-adt-rxmongo",
-  libraryDependencies ++= Seq(
-    "org.reactivemongo" %% "reactivemongo" % "0.10.5.0.akka23"
-  )
-).dependsOn(
-    `bson-adt-core` % "compile->compile;test->test"
+    `bson-adt-mongo2` % "compile->compile;test->test"
   )
 

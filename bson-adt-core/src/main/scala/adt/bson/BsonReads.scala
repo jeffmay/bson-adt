@@ -74,7 +74,7 @@ trait BsonReads[A] {
   }
 }
 
-object BsonReads extends DefaultReads {
+object BsonReads extends DefaultBsonReads {
 
   def apply[A](f: BsonValue => A): BsonReads[A] = new BsonReads[A] {
     override def reads(bson: BsonValue): A = f(bson)
@@ -86,7 +86,7 @@ object BsonReads extends DefaultReads {
 /**
  * Default Bson Deserializers
  */
-trait DefaultReads {
+trait DefaultBsonReads {
 
   // TODO: Tests for loss of precision exceptions
 
@@ -123,17 +123,6 @@ trait DefaultReads {
   private def validFloat(n: Double): Float = {
     if (n > Float.NegativeInfinity && n < Float.PositiveInfinity) n.toFloat
     else throw new NumberFormatException(s"Loss of precision detected when converting $n to an Float")
-  }
-
-  implicit object BsonReadsBsonValue extends BsonReads[BsonValue] {
-    override def reads(bson: BsonValue): BsonValue = bson
-  }
-
-  implicit object BsonReadsBsonObject extends BsonReads[BsonObject] {
-    override def reads(bson: BsonValue): BsonObject = bson match {
-      case obj: BsonObject => obj
-      case _ => throw new UnexpectedBsonException("error.expected.object", bson)
-    }
   }
 
   implicit object BsonReadsBoolean extends BsonReads[Boolean] {
@@ -234,6 +223,94 @@ trait DefaultReads {
       case BsonLong(value) => value
       case BsonNumber(value) => value
       case _ => throw new UnexpectedBsonException("error.expected.number", bson)
+    }
+  }
+
+  implicit object BsonReadsBsonValue extends BsonReads[BsonValue] {
+    override def reads(bson: BsonValue): BsonValue = bson
+  }
+
+  implicit object BsonReadsBsonBoolean extends BsonReads[BsonBoolean] {
+    override def reads(bson: BsonValue): BsonBoolean = bson match {
+      case bool: BsonBoolean => bool
+      case _ => throw new UnexpectedBsonException("error.expected.boolean", bson)
+    }
+  }
+
+  implicit object BsonReadsBsonInt extends BsonReads[BsonInt] {
+    override def reads(bson: BsonValue): BsonInt = bson match {
+      case int: BsonInt => int
+      case _ => throw new UnexpectedBsonException("error.expected.int", bson)
+    }
+  }
+
+  implicit object BsonReadsBsonLong extends BsonReads[BsonLong] {
+    override def reads(bson: BsonValue): BsonLong = bson match {
+      case long: BsonLong => long
+      case _ => throw new UnexpectedBsonException("error.expected.long", bson)
+    }
+  }
+
+  implicit object BsonReadsBsonNumber extends BsonReads[BsonNumber] {
+    override def reads(bson: BsonValue): BsonNumber = bson match {
+      case num: BsonNumber => num
+      case _ => throw new UnexpectedBsonException("error.expected.number", bson)
+    }
+  }
+
+  implicit object BsonReadsBsonString extends BsonReads[BsonString] {
+    override def reads(bson: BsonValue): BsonString = bson match {
+      case str: BsonString => str
+      case _ => throw new UnexpectedBsonException("error.expected.string", bson)
+    }
+  }
+
+  implicit object BsonReadsBsonDate extends BsonReads[BsonDate] {
+    override def reads(bson: BsonValue): BsonDate = bson match {
+      case date: BsonDate => date
+      case _ => throw new UnexpectedBsonException("error.expected.date", bson)
+    }
+  }
+
+  implicit object BsonReadsBsonObjectId extends BsonReads[BsonObjectId] {
+    override def reads(bson: BsonValue): BsonObjectId = bson match {
+      case oid: BsonObjectId => oid
+      case _ => throw new UnexpectedBsonException("error.expected.objectid", bson)
+    }
+  }
+
+  implicit object BsonReadsBsonRegex extends BsonReads[BsonRegex] {
+    override def reads(bson: BsonValue): BsonRegex = bson match {
+      case regex: BsonRegex => regex
+      case _ => throw new UnexpectedBsonException("error.expected.objectid", bson)
+    }
+  }
+
+  implicit object BsonReadsBsonArray extends BsonReads[BsonArray] {
+    override def reads(bson: BsonValue): BsonArray = bson match {
+      case arr: BsonArray => arr
+      case _ => throw new UnexpectedBsonException("error.expected.object", bson)
+    }
+  }
+
+  implicit object BsonReadsBsonObject extends BsonReads[BsonObject] {
+    override def reads(bson: BsonValue): BsonObject = bson match {
+      case obj: BsonObject => obj
+      case _ => throw new UnexpectedBsonException("error.expected.object", bson)
+    }
+  }
+
+  implicit object BsonReadsBsonContainer extends BsonReads[BsonContainer] {
+    override def reads(bson: BsonValue): BsonContainer = bson match {
+      case cons: BsonContainer => cons
+      case _ => throw new UnexpectedBsonException("error.expected.object", bson)
+    }
+  }
+
+  implicit object BsonReadsBsonPrimitive extends BsonReads[BsonPrimitive] {
+    override def reads(bson: BsonValue): BsonPrimitive = bson match {
+      case prim: BsonPrimitive => prim
+      case _ => throw new UnexpectedBsonException("error.expected.object", bson)
     }
   }
 
