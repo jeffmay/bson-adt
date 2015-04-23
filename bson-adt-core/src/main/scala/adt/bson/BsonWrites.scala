@@ -88,7 +88,7 @@ trait BsonWrites[-A] {
   def prune: BsonWrites[A] = transform(_.pruned)
 }
 
-object BsonWrites extends DefaultWrites {
+object BsonWrites extends DefaultBsonWrites {
 
   def apply[A](f: A => BsonValue): BsonWrites[A] = new BsonWrites[A] {
     override def writes(value: A): BsonValue = f(value)
@@ -100,7 +100,7 @@ object BsonWrites extends DefaultWrites {
 /**
  * Default Bson Serializers.
  */
-trait DefaultWrites {
+trait DefaultBsonWrites {
 
   implicit object BsonWritesBsonValue extends BsonWrites[BsonValue] {
     override def writes(value: BsonValue): BsonValue = value

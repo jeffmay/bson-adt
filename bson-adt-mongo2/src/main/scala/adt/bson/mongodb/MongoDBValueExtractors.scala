@@ -1,6 +1,5 @@
 package adt.bson.mongodb
 
-import adt.bson._
 import com.mongodb.{BasicDBList, BasicDBObject}
 import org.joda.time.{DateTime, DateTimeZone}
 

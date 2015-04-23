@@ -1,8 +1,8 @@
 package adt.bson
 
-import org.bson.BSON
+import org.bson.BsonType
 import org.bson.types.ObjectId
-import org.joda.time.DateTime
+import org.joda.time.{DateTime, DateTimeZone}
 
 import scala.util.Try
 import scala.util.matching.Regex
@@ -25,9 +25,13 @@ import scala.util.matching.Regex
  * Max key                  \x7F / 127  (used internally)
  */
 sealed trait BsonValue {
-  type $type
-  def $type: Int
-  def value: $type
+  @deprecated("Use (???: BsonValue).ScalaType instead.", "1.3.0")
+  type $type = ScalaType
+  @deprecated("Use (???: BsonValue).Type.getValue instead.", "1.3.0")
+  def $type: Int = Type.getValue
+  type ScalaType
+  val Type: BsonType
+  def value: ScalaType
 
   /**
    * Tries to convert the value into a [[T]], throwing an exception if it can't.
@@ -86,33 +90,33 @@ sealed trait BsonContainer extends BsonValue {
 }
 
 case class BsonBoolean(value: Boolean) extends BsonPrimitive {
-  override type $type = Boolean
-  override def $type: Int = BSON.BOOLEAN
+  override type ScalaType = Boolean
+  @inline final override val Type: BsonType = BsonType.BOOLEAN
 }
 
 case class BsonNumber(value: Double) extends BsonPrimitive {
-  override type $type = Double
-  override def $type: Int = BSON.NUMBER
+  override type ScalaType = Double
+  @inline final override val Type: BsonType = BsonType.DOUBLE
 }
 
 case class BsonInt(value: Int) extends BsonPrimitive {
-  override type $type = Int
-  override def $type: Int = BSON.NUMBER_INT
+  override type ScalaType = Int
+  @inline final override val Type: BsonType = BsonType.INT32
 }
 
 case class BsonLong(value: Long) extends BsonPrimitive {
-  override type $type = Long
-  override def $type: Int = BSON.NUMBER_LONG
+  override type ScalaType = Long
+  @inline final override val Type: BsonType = BsonType.INT64
 }
 
 case class BsonString(value: String) extends BsonPrimitive {
-  override type $type = String
-  override def $type: Int = BSON.STRING
+  override type ScalaType = String
+  @inline final override val Type: BsonType = BsonType.STRING
 }
 
 case class BsonBinary(value: Array[Byte]) extends BsonPrimitive with Proxy {
-  override type $type = Array[Byte]
-  override def $type: Int = BSON.BINARY
+  override type ScalaType = Array[Byte]
+  @inline final override val Type: BsonType = BsonType.BINARY
 
   val utf8: String = new String(value, "UTF-8")
 
@@ -129,8 +133,8 @@ case class BsonBinary(value: Array[Byte]) extends BsonPrimitive with Proxy {
  * @param value the regex value
  */
 case class BsonRegex(value: Regex) extends BsonPrimitive with Proxy {
-  override type $type = Regex
-  override def $type: Int = BSON.REGEX
+  override type ScalaType = Regex
+  @inline final override val Type: BsonType = BsonType.REGULAR_EXPRESSION
 
   val pattern: String = value.pattern.pattern()
 
@@ -138,18 +142,24 @@ case class BsonRegex(value: Regex) extends BsonPrimitive with Proxy {
 }
 
 case class BsonObjectId(value: ObjectId) extends BsonPrimitive {
-  override type $type = ObjectId
-  override def $type: Int = BSON.OID
+  override type ScalaType = ObjectId
+  @inline final override val Type: BsonType = BsonType.OBJECT_ID
 }
 
 case class BsonDate(value: DateTime) extends BsonPrimitive {
-  override type $type = DateTime
-  override def $type: Int = BSON.DATE
+  override type ScalaType = DateTime
+  @inline final override val Type: BsonType = BsonType.DATE_TIME
+
+  def this(millis: Long) = this(new DateTime(millis, DateTimeZone.UTC))
+}
+object BsonDate extends (DateTime => BsonDate) {
+
+  def apply(millis: Long): BsonDate = new BsonDate(millis)
 }
 
 case class BsonArray(value: Seq[BsonValue] = Nil) extends BsonContainer {
-  override type $type = Seq[BsonValue]
-  override def $type: Int = BSON.ARRAY
+  override type ScalaType = Seq[BsonValue]
+  @inline final override val Type: BsonType = BsonType.ARRAY
 
   @inline final override def children: Iterable[BsonValue] = value
 
@@ -159,8 +169,8 @@ case class BsonArray(value: Seq[BsonValue] = Nil) extends BsonContainer {
 }
 
 case class BsonObject(value: Map[String, BsonValue] = Map.empty) extends BsonContainer {
-  override type $type = Map[String, BsonValue]
-  override def $type: Int = BSON.OBJECT
+  override type ScalaType = Map[String, BsonValue]
+  @inline final override val Type: BsonType = BsonType.OBJECT_ID
 
   override def children: Iterable[BsonValue] = value.values
 
@@ -178,8 +188,8 @@ case class BsonObject(value: Map[String, BsonValue] = Map.empty) extends BsonCon
  */
 case object BsonNull extends BsonPrimitive {
   override def value: Null = null  // throw new NullPointerException?
-  override type $type = Null
-  override def $type: Int = BSON.NULL
+  override type ScalaType = Null
+  @inline final override val Type: BsonType = BsonType.NULL
 
   override def asOpt[T](implicit reader: BsonReads[T]): Option[T] = None
 
@@ -190,9 +200,9 @@ case object BsonNull extends BsonPrimitive {
  * Represent a missing Bson value.
  */
 class BsonUndefined(err: => String) extends BsonValue {
-  override type $type = Nothing
-  override def value: $type = throw new NoSuchElementException("Cannot read value of undefined")
-  override def $type: Int = BSON.UNDEFINED
+  override type ScalaType = Nothing
+  override def value: Nothing = throw new NoSuchElementException("Cannot read value of undefined")
+  @inline final override val Type: BsonType = BsonType.UNDEFINED
   def error = err
   override def toString = "BsonUndefined(" + err + ")"
 

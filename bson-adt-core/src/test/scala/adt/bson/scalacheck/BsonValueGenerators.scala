@@ -2,10 +2,10 @@ package adt.bson.scalacheck
 
 import adt.bson._
 import org.bson.types.{Binary, ObjectId}
-import org.joda.time.{LocalDateTime, DateTime, DateTimeZone}
-import org.scalacheck.{Shrink, Arbitrary, Gen}
+import org.joda.time.{DateTime, DateTimeZone, LocalDateTime}
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Shrink._
+import org.scalacheck.{Arbitrary, Gen, Shrink}
 
 import scala.language.implicitConversions
 import scala.util.matching.Regex

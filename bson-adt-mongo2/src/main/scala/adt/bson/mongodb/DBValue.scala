@@ -1,4 +1,6 @@
-package adt.bson
+package adt.bson.mongodb
+
+import adt.bson.BsonValue
 
 /**
  * A wrapper for any value that can be safely stored to Mongo using the driver in scope.
@@ -7,7 +9,7 @@ package adt.bson
  *       It does not guarantee safety of the value having the right type for your field.
  *
  *       The first iteration of this was a type class, but the end result was just duplicating
- *       the whole intent of [[BsonValue]] and [[BsonWrites]].
+ *       the whole intent of [[BsonValue]] and [[adt.bson.BsonWrites]].
  *
  *       It is probably best to operate on [[BsonValue]] in helper methods and only convert
  *       to a [[DBValue]] for purposes of knowing generically at compile-time that the value has

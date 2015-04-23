@@ -1,7 +1,9 @@
 package adt.bson.casbah
 
-import adt.bson._
-import com.mongodb.casbah.Imports._
+import adt.bson.mongodb.{DBExtractor, DBValueExtractors, DefaultDBValueExtractor}
+import com.mongodb.casbah.Implicits._
+import com.mongodb.casbah.commons._
+import com.mongodb.{BasicDBList, BasicDBObject}
 import org.joda.time.DateTime
 
 import scala.language.implicitConversions
@@ -13,7 +15,7 @@ import scala.util.matching.Regex
  * @note if attempting to extract a [[Traversable]], you should always put this extractor
  *       AFTER the [[DBObject]] extractor, as this is a little more lenient.
  *
- * [[BasicDBList]] is the only list representation in the underlying driver and it
+ * [[com.mongodb.BasicDBList]] is the only list representation in the underlying driver and it
  * extends from [[DBObject]]. The extractor will avoid checking this type.
  */
 object DBList extends DBExtractor[MongoDBList] {
@@ -51,7 +53,7 @@ object DBObject extends DBExtractor[MongoDBObject] {
   override def matches(value: Any): Boolean = value match {
     // this must come first to avoid being caught as a Traversable or DBObject
     case null | _: MongoDBList | _: BasicDBList => false
-    case _: MongoDBObject | _: DBObject => true
+    case _: MongoDBObject | _: com.mongodb.DBObject => true
     case x: Map[_, _] => x.keys forall (_.isInstanceOf[String])
     case _ => false
   }
@@ -59,8 +61,8 @@ object DBObject extends DBExtractor[MongoDBObject] {
   override def unapply(value: Any): Option[MongoDBObject] = value match {
     // this must come first to avoid being caught as a Traversable or DBObject
     case null | _: MongoDBList | _: BasicDBList => None
-    case x: MongoDBObject => Some(x)
-    case x: DBObject =>      Some(x)  // BasicDBObject extends from DBObject, so this will match both
+    case x: MongoDBObject        => Some(x)
+    case x: com.mongodb.DBObject => Some(x)  // BasicDBObject extends from DBObject, so this will match both
     // unlikely to come out of something loaded from the database, but possible from a manually created DBObject
     case x: Map[_, _] if x.keys forall (_.isInstanceOf[String]) =>
       val fields = x.toSeq map { case (k, v) => (k.asInstanceOf[String], v) }
