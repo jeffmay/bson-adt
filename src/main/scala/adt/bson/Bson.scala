@@ -27,7 +27,7 @@ object Bson {
    * @note Due to [[BsonValueWrapper]] extending [[NotNull]] `null` or `None` will end in a compiler error;
    *       Use [[BsonNull]] instead.
    */
-  sealed trait BsonValueWrapper extends NotNull
+  sealed trait BsonValueWrapper
 
   private case class BsonValueWrapperImpl(bson: BsonValue) extends BsonValueWrapper
 

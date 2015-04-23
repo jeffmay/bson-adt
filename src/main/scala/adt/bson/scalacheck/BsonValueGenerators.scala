@@ -2,7 +2,7 @@ package adt.bson.scalacheck
 
 import adt.bson._
 import org.bson.types.{Binary, ObjectId}
-import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.{LocalDateTime, DateTime, DateTimeZone}
 import org.scalacheck.{Shrink, Arbitrary, Gen}
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Shrink._
@@ -27,6 +27,14 @@ trait BsonValueGenerators extends RegexGenerators {
     )
   }
 
+  implicit def arbitraryLocalDateTime: Arbitrary[LocalDateTime] = {
+    Arbitrary(
+      for {
+        millis <- Gen.choose(0L, Long.MaxValue)
+      } yield new LocalDateTime(millis)
+    )
+  }
+
   private def halves[T](n: T)(implicit integral: Integral[T]): Stream[T] = {
     import integral._
     if (n == zero) Stream.empty
@@ -47,17 +55,17 @@ trait BsonValueGenerators extends RegexGenerators {
     arbBytes.arbitrary.map(new Binary(_))
   }
 
-  implicit def arbObjectId(implicit arbDate: Arbitrary[DateTime]): Arbitrary[ObjectId] = Arbitrary {
+  implicit def arbObjectId(implicit arbDate: Arbitrary[java.util.Date]): Arbitrary[ObjectId] = Arbitrary {
     for {
-      when <- arbDate.arbitrary
-    } yield new ObjectId(new java.util.Date(when.getMillis))
+      date <- arbDate.arbitrary
+    } yield new ObjectId(date)
   }
 
   // The only way in which the ObjectId could cause a property to fail is if someone is using
   // the timestamp from the ObjectId in a test.
   implicit val shrinkObjectId: Shrink[ObjectId] = Shrink { oid =>
-    val shrinkMillis = shrinkSameSign(oid.getTime)
-    shrinkMillis map { millis => new ObjectId(new java.util.Date(millis)) }
+    val shrinkSeconds = shrinkSameSign(oid.getTimestamp)
+    shrinkSeconds map { millis => new ObjectId(new java.util.Date(millis * 1000)) }
   }
 
   implicit val arbBsonValue: Arbitrary[BsonValue] = Arbitrary {
@@ -204,7 +212,7 @@ trait BsonValueGenerators extends RegexGenerators {
   
   def genBsonArray(
     depth: Int = 0,
-    genArraySize: Gen[Int] = Gen.choose(0, 10)): Gen[BsonArray] = {
+    genArraySize: Gen[Int] = Gen.choose(0, 5)): Gen[BsonArray] = {
     require(depth >= 0, "depth cannot be negative")
     val genItemValue =
       if (depth == 0) genBsonPrimitive()
@@ -217,7 +225,7 @@ trait BsonValueGenerators extends RegexGenerators {
 
   def genBsonObject(
     depth: Int = 0,
-    genObjectSize: Gen[Int] = Gen.choose(0, 10)): Gen[BsonObject] = {
+    genObjectSize: Gen[Int] = Gen.choose(0, 5)): Gen[BsonObject] = {
     require(depth >= 0, "depth cannot be negative")
     val genFieldValue =
       if (depth == 0) genBsonPrimitive()

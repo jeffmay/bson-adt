@@ -41,7 +41,7 @@ with BsonValueGenerators {
   it should "write the same deeply nested List of Bson values that it reads" in {
     val genNested = for {
       n <- Gen.choose(1, 3)
-      array <- genBsonArray(depth = n, 6 / n)
+      array <- genBsonArray(depth = n, 3)
     } yield array
     forAll(genNested) { bson =>
       // It should at least be nested twice

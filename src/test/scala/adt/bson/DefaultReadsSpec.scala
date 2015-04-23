@@ -3,9 +3,9 @@ package adt.bson
 import adt.bson.scalacheck.BsonValueGenerators
 import org.bson.types.ObjectId
 import org.joda.time.{DateTime, DateTimeZone}
+import org.scalactic.Tolerance
 import org.scalatest.FlatSpec
 import org.scalatest.prop.PropertyChecks
-import org.scalautils.Tolerance
 
 import scala.util.matching.Regex
 

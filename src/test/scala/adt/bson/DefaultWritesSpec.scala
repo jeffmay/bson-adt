@@ -5,9 +5,9 @@ import java.util
 import adt.bson.scalacheck.BsonValueGenerators
 import org.bson.types.ObjectId
 import org.joda.time.{DateTime, DateTimeZone}
+import org.scalactic.Tolerance
 import org.scalatest.FlatSpec
 import org.scalatest.prop.PropertyChecks
-import org.scalautils.Tolerance
 
 import scala.util.matching.Regex
 
@@ -81,7 +81,7 @@ with BsonValueGenerators {
 
   it should "write ObjectId properly" in {
     forAll { (value: ObjectId) =>
-      val clone = new ObjectId((value.getTime / 1000).toInt, value.getMachine, value.getInc)
+      val clone = new ObjectId(value.toByteArray)
       assert(Bson.toBson(value) == BsonObjectId(clone))
     }
   }
