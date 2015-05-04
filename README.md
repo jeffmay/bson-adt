@@ -6,8 +6,8 @@ A closed generic algebraic data type for Bson serialization and deserialization 
 This library works a lot like the [play-json](https://www.playframework.com/documentation/2.3.x/ScalaJson) library,
 but for BSON, the document storage format used by [MongoDB](http://docs.mongodb.org/manual/core/introduction/).
 
-What's an Abstract Data Type?
-=============================
+What's an Algebraic Data Type?
+==============================
 
 In short, an algebraic data type (ADT) is just a way of defining a closed set of values, kind of like an enumeration.
 The only difference between an ADT and an enumeration is that an ADT can assign differently structured data and
