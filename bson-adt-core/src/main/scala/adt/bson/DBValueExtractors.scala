@@ -1,6 +1,6 @@
 package adt.bson
 
-import com.mongodb.casbah.Imports._
+import org.bson.types.ObjectId
 import org.joda.time.DateTime
 
 import scala.annotation.tailrec
@@ -27,7 +27,7 @@ trait DBValueExtractors {
 }
 
 trait DefaultDBValueExtractor {
-  x: DBValueExtractors =>
+  self: DBValueExtractors =>
 
   protected def isEmpty(dbo: DBObjectType): Boolean
 
@@ -57,7 +57,7 @@ trait DefaultDBValueExtractor {
      */
     @tailrec
     override def matches(value: Any): Boolean = {
-      x.DBObject.matches(value) || x.DBList.matches(value) || x.DBDate.matches(value) || x.DBRegex.matches(value) || (
+      self.DBObject.matches(value) || self.DBList.matches(value) || self.DBDate.matches(value) || self.DBRegex.matches(value) || (
         value match {
           case Some(x) => matches(x) // unwrap all options to find out
           case null | None
@@ -85,12 +85,12 @@ trait DefaultDBValueExtractor {
       case x: java.lang.Long => Some(new DBValue(x))
       case x: java.lang.Double => Some(new DBValue(x))
       case x: java.lang.Float => Some(new DBValue(x))
-      case x.DBBinary(bin) => Some(new DBValue(bin))
+      case self.DBBinary(bin) => Some(new DBValue(bin))
       // Skipping empty objects, since these should probably fall back to an array
-      case x.DBObject(dbo) if !isEmpty(dbo) => Some(new DBValue(dbo))
-      case x.DBList(lst) => Some(new DBValue(lst))
-      case x.DBDate(date) => Some(new DBValue(date.toDate))  // Mongo only stores java.util.Date
-      case x.DBRegex(pattern) => Some(new DBValue(pattern.pattern))  // Mongo only stores java.util.regex.Pattern
+      case self.DBObject(dbo) if !isEmpty(dbo) => Some(new DBValue(dbo))
+      case self.DBList(lst) => Some(new DBValue(lst))
+      case self.DBDate(date) => Some(new DBValue(date.toDate))  // Mongo only stores java.util.Date
+      case self.DBRegex(pattern) => Some(new DBValue(pattern.pattern))  // Mongo only stores java.util.regex.Pattern
       case _ => None
     }
 
