@@ -2,7 +2,7 @@ package adt.bson
 
 import org.bson.BSON
 import org.bson.types.ObjectId
-import org.joda.time.DateTime
+import org.joda.time.{DateTime, DateTimeZone}
 
 import scala.util.Try
 import scala.util.matching.Regex
@@ -145,6 +145,12 @@ case class BsonObjectId(value: ObjectId) extends BsonPrimitive {
 case class BsonDate(value: DateTime) extends BsonPrimitive {
   override type $type = DateTime
   override def $type: Int = BSON.DATE
+
+  def this(millis: Long) = this(new DateTime(millis, DateTimeZone.UTC))
+}
+object BsonDate {
+
+  def apply(millis: Long): BsonDate = new BsonDate(millis)
 }
 
 case class BsonArray(value: Seq[BsonValue] = Nil) extends BsonContainer {
