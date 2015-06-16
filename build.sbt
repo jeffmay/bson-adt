@@ -77,3 +77,11 @@ lazy val `bson-adt-casbah` = (project in file("bson-adt-casbah")).settings(commo
     `bson-adt-mongo2` % "compile->compile;test->test"
   )
 
+lazy val `bson-adt-mongo` = (project in file("bson-adt-mongo3")).settings(common).settings(
+  name := "bson-adt-mongo",
+  libraryDependencies ++= Seq(
+    "org.mongodb" % "mongo-java-driver" % "3.0.2"
+  )
+).dependsOn(
+    `bson-adt-core` % "compile->compile;test->test"
+  )

@@ -4,7 +4,7 @@ import java.util.Date
 
 import adt.bson._
 import adt.bson.casbah.CasbahImplicits._
-import adt.bson.scalacheck.BsonValueGenerators
+import adt.bson.scalacheck.{BsonValueGenerators, RegexGenerators}
 import org.bson.types.{Binary, ObjectId}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.FunSpec
@@ -12,7 +12,7 @@ import org.scalatest.prop.PropertyChecks
 
 import scala.util.matching.Regex
 
-class CasbahImplicitsSpec extends FunSpec with PropertyChecks with BsonValueGenerators {
+class CasbahImplicitsSpec extends FunSpec with PropertyChecks with BsonValueGenerators with RegexGenerators {
 
   describe("CasbahImplicits.bsonValue") {
 

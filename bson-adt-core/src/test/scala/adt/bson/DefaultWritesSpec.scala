@@ -2,7 +2,7 @@ package adt.bson
 
 import java.util
 
-import adt.bson.scalacheck.BsonValueGenerators
+import adt.bson.scalacheck.{RegexGenerators, BsonValueGenerators}
 import org.bson.types.ObjectId
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalactic.Tolerance
@@ -14,7 +14,8 @@ import scala.util.matching.Regex
 class DefaultWritesSpec extends FlatSpec
 with PropertyChecks
 with Tolerance
-with BsonValueGenerators {
+with BsonValueGenerators
+with RegexGenerators {
 
   // Slightly more tolerant than the Machine Epsilon, but it'll do
   // See http://en.wikipedia.org/wiki/Machine_epsilon

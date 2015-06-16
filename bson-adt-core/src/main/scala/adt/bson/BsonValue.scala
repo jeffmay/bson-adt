@@ -174,6 +174,8 @@ case class BsonObject(value: Map[String, BsonValue] = Map.empty) extends BsonCon
 
   override def children: Iterable[BsonValue] = value.values
 
+  def ++(that: BsonObject): BsonObject = BsonObject(this.value ++ that.value)
+
   override def \(fieldName: String): BsonValue = {
     value.getOrElse(fieldName, super.\(fieldName))
   }

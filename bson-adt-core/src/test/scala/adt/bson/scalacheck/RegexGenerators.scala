@@ -7,6 +7,7 @@ import org.scalacheck.{Arbitrary, Gen}
 import scala.util.Try
 import scala.util.matching.Regex
 
+object RegexGenerators extends RegexGenerators
 trait RegexGenerators {
 
   val genRegexChar: Gen[Char] = Gen.choose(' ', '~')  // any ascii value
