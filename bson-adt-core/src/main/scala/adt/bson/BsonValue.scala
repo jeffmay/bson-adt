@@ -30,7 +30,7 @@ sealed trait BsonValue {
   @deprecated("Use (???: BsonValue).Type.getValue instead.", "1.3.0")
   def $type: Int = Type.getValue
   type ScalaType
-  val Type: BsonType
+  def Type: BsonType
   def value: ScalaType
 
   /**
@@ -91,32 +91,32 @@ sealed trait BsonContainer extends BsonValue {
 
 case class BsonBoolean(value: Boolean) extends BsonPrimitive {
   override type ScalaType = Boolean
-  @inline final override val Type: BsonType = BsonType.BOOLEAN
+  @inline final override def Type: BsonType = BsonType.BOOLEAN
 }
 
 case class BsonNumber(value: Double) extends BsonPrimitive {
   override type ScalaType = Double
-  @inline final override val Type: BsonType = BsonType.DOUBLE
+  @inline final override def Type: BsonType = BsonType.DOUBLE
 }
 
 case class BsonInt(value: Int) extends BsonPrimitive {
   override type ScalaType = Int
-  @inline final override val Type: BsonType = BsonType.INT32
+  @inline final override def Type: BsonType = BsonType.INT32
 }
 
 case class BsonLong(value: Long) extends BsonPrimitive {
   override type ScalaType = Long
-  @inline final override val Type: BsonType = BsonType.INT64
+  @inline final override def Type: BsonType = BsonType.INT64
 }
 
 case class BsonString(value: String) extends BsonPrimitive {
   override type ScalaType = String
-  @inline final override val Type: BsonType = BsonType.STRING
+  @inline final override def Type: BsonType = BsonType.STRING
 }
 
 case class BsonBinary(value: Array[Byte]) extends BsonPrimitive with Proxy {
   override type ScalaType = Array[Byte]
-  @inline final override val Type: BsonType = BsonType.BINARY
+  @inline final override def Type: BsonType = BsonType.BINARY
 
   val utf8: String = new String(value, "UTF-8")
 
@@ -134,7 +134,7 @@ case class BsonBinary(value: Array[Byte]) extends BsonPrimitive with Proxy {
  */
 case class BsonRegex(value: Regex) extends BsonPrimitive with Proxy {
   override type ScalaType = Regex
-  @inline final override val Type: BsonType = BsonType.REGULAR_EXPRESSION
+  @inline final override def Type: BsonType = BsonType.REGULAR_EXPRESSION
 
   val pattern: String = value.pattern.pattern()
 
@@ -143,12 +143,12 @@ case class BsonRegex(value: Regex) extends BsonPrimitive with Proxy {
 
 case class BsonObjectId(value: ObjectId) extends BsonPrimitive {
   override type ScalaType = ObjectId
-  @inline final override val Type: BsonType = BsonType.OBJECT_ID
+  @inline final override def Type: BsonType = BsonType.OBJECT_ID
 }
 
 case class BsonDate(value: DateTime) extends BsonPrimitive {
   override type ScalaType = DateTime
-  @inline final override val Type: BsonType = BsonType.DATE_TIME
+  @inline final override def Type: BsonType = BsonType.DATE_TIME
 
   def this(millis: Long) = this(new DateTime(millis, DateTimeZone.UTC))
 }
@@ -157,9 +157,39 @@ object BsonDate extends (DateTime => BsonDate) {
   def apply(millis: Long): BsonDate = new BsonDate(millis)
 }
 
+// This is currently not integrated into the ADT, but it will be soon, so this is a placeholder
+case class BsonTimestamp(millis: Int, inc: Int) /* extends BsonPrimitive */ {
+  type ScalaType = BsonTimestamp  // there isn't a good Scala equivalent, so we'll use this class
+  @inline final def value: ScalaType = this
+  @inline final def Type: BsonType = BsonType.TIMESTAMP
+}
+
+// This is currently not integrated into the ADT as it is a rare use case and requires additional validation logic.
+class BsonJavaScript private (val value: String) extends Proxy /* with BsonPrimitive */ {
+  type ScalaType = String
+  @inline final def Type: BsonType = BsonType.JAVASCRIPT
+  @inline final override def self: Any = value
+}
+object BsonJavaScript extends (String => BsonJavaScript) {
+
+  override def apply(js: String): BsonJavaScript = parse(js)
+  def unapply(js: BsonJavaScript): Option[String] = {
+    if (js eq null) None
+    else Some(js.value)
+  }
+
+  def parse(js: String): BsonJavaScript = {
+    if (isValid(js)) new BsonJavaScript(js)
+    else throw new IllegalArgumentException(s"Invalid JavaScript: '$js'")
+  }
+
+  // TODO: Implement or require a parser
+  def isValid(js: String): Boolean = true
+}
+
 case class BsonArray(value: Seq[BsonValue] = Nil) extends BsonContainer {
   override type ScalaType = Seq[BsonValue]
-  @inline final override val Type: BsonType = BsonType.ARRAY
+  @inline final override def Type: BsonType = BsonType.ARRAY
 
   @inline final override def children: Iterable[BsonValue] = value
 
@@ -170,7 +200,7 @@ case class BsonArray(value: Seq[BsonValue] = Nil) extends BsonContainer {
 
 case class BsonObject(value: Map[String, BsonValue] = Map.empty) extends BsonContainer {
   override type ScalaType = Map[String, BsonValue]
-  @inline final override val Type: BsonType = BsonType.OBJECT_ID
+  @inline final override def Type: BsonType = BsonType.OBJECT_ID
 
   override def children: Iterable[BsonValue] = value.values
 
@@ -191,7 +221,7 @@ case class BsonObject(value: Map[String, BsonValue] = Map.empty) extends BsonCon
 case object BsonNull extends BsonPrimitive {
   override def value: Null = null  // throw new NullPointerException?
   override type ScalaType = Null
-  @inline final override val Type: BsonType = BsonType.NULL
+  @inline final override def Type: BsonType = BsonType.NULL
 
   override def asOpt[T](implicit reader: BsonReads[T]): Option[T] = None
 
@@ -204,7 +234,7 @@ case object BsonNull extends BsonPrimitive {
 class BsonUndefined(err: => String) extends BsonValue {
   override type ScalaType = Nothing
   override def value: Nothing = throw new NoSuchElementException("Cannot read value of undefined")
-  @inline final override val Type: BsonType = BsonType.UNDEFINED
+  @inline final override def Type: BsonType = BsonType.UNDEFINED
   def error = err
   override def toString = "BsonUndefined(" + err + ")"
 
