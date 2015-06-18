@@ -135,6 +135,8 @@ trait BsonValueGenerators extends CommonGenerators {
     case BsonUndefined() => Stream.empty
   }
 
+  def genElementMax: Gen[Int] = Gen.sized(max => Gen.choose(0, Math.min(5, max)))
+
   private def genBson[A: BsonWrites](genValue: Gen[A]): Gen[BsonPrimitive] = for {
     value <- genValue
   } yield Bson.toBson(value).asInstanceOf[BsonPrimitive]
@@ -158,7 +160,7 @@ trait BsonValueGenerators extends CommonGenerators {
   
   def genBsonArray(
     depth: Int = 0,
-    genArraySize: Gen[Int] = Gen.choose(0, 5)): Gen[BsonArray] = {
+    genArraySize: Gen[Int] = genElementMax): Gen[BsonArray] = {
     require(depth >= 0, "depth cannot be negative")
     val genItemValue =
       if (depth == 0) genBsonPrimitive()
@@ -171,21 +173,21 @@ trait BsonValueGenerators extends CommonGenerators {
 
   def genBsonObject(
     depth: Int = 0,
-    genObjectSize: Gen[Int] = Gen.choose(0, 5)): Gen[BsonObject] = {
+    genObjectSize: Gen[Int] = genElementMax): Gen[BsonObject] = {
     require(depth >= 0, "depth cannot be negative")
     val genFieldValue =
       if (depth == 0) genBsonPrimitive()
       else genBsonObject(depth - 1, genObjectSize)
     for {
       n <- genObjectSize
-      fields <- Gen.listOfN(n, Gen.zip(Gen.alphaStr.suchThat(!_.isEmpty), genFieldValue))
+      fields <- Gen.listOfN(n, Gen.zip(Gen.identifier, genFieldValue))
     } yield BsonObject(fields.toMap)
   }
 
   def genBsonValue(
     depth: Int = 5,
-    genObjectSize: Gen[Int] = Gen.choose(0, 5),
-    genArraySize: Gen[Int] = Gen.choose(0, 5)): Gen[BsonValue] = {
+    genObjectSize: Gen[Int] = genElementMax,
+    genArraySize: Gen[Int] = genElementMax): Gen[BsonValue] = {
     require(depth >= 0, "depth cannot be negative")
     if (depth == 0) genBsonPrimitive()
     else Gen.oneOf(

@@ -1,8 +1,8 @@
 package adt.bson.scalacheck
 
-import adt.bson.mongo._
+import adt.bson.JavaBsonValues._
 import adt.bson.scalacheck.RegexGenerators._
-import adt.bson.{Bson, BsonWrites}
+import adt.bson.{Bson, BsonWrites, JavaBsonDocument}
 import org.bson._
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
@@ -10,7 +10,7 @@ import org.scalacheck.Arbitrary._
 import org.scalacheck.Shrink._
 import org.scalacheck.{Arbitrary, Gen, Shrink}
 
-import scala.collection.JavaConversions.{collectionAsScalaIterable, seqAsJavaList, mapAsScalaMap}
+import scala.collection.JavaConversions.{collectionAsScalaIterable, mapAsScalaMap, seqAsJavaList}
 import scala.util.matching.Regex
 
 object JavaBsonValueGenerators extends JavaBsonValueGenerators
