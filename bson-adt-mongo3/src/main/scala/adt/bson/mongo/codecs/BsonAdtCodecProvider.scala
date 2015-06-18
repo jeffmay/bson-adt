@@ -7,6 +7,8 @@ import org.bson.codecs.configuration.{CodecProvider, CodecRegistry}
 /**
  * Provides the [[BsonAdtCodec]] for [[com.mongodb.client.MongoCollection]] of type [[BsonObject]].
  *
+ * Be sure to `import adt.bson.mongo._` to be able to convert to and from
+ *
  * @note some operations in [[com.mongodb.MongoClient]] are not parameterized to return [[BsonObject]]
  *       once this is configured. You will still need to include [[org.bson.codecs.DocumentCodecProvider]]
  *       and [[org.bson.codecs.ValueCodecProvider]] to call these methods.

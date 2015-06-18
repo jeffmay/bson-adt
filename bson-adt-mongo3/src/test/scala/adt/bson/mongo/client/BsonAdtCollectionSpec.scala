@@ -1,5 +1,6 @@
-package adt.bson.mongo
+package adt.bson.mongo.client
 
+// Needed for conversions to mongo
 import adt.bson.mongo.client.test.TestMongo
 import adt.bson.scalacheck.BsonValueGenerators
 import adt.bson.{Bson, BsonObject}
@@ -7,14 +8,14 @@ import org.bson.types.ObjectId
 import org.scalatest.FlatSpec
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 
-class BsonAdtCodecProviderSpec extends FlatSpec
+class BsonAdtCollectionSpec extends FlatSpec
 with GeneratorDrivenPropertyChecks
 with BsonValueGenerators {
 
   TestMongo.withDatabase("BsonAdtCodecProviderSpec") { db =>
 
     class Fixture {
-      lazy val test = db.getCollection("test", classOf[BsonObject])
+      lazy val test: BsonAdtCollection = db.getBsonCollection("test")
     }
 
     def withFixture(f: Fixture => Unit): Unit = {
@@ -28,8 +29,8 @@ with BsonValueGenerators {
         val id = Bson.obj("_id" -> new ObjectId())
         val doc = bson ++ id
         f.test.insertOne(doc)
-        val found = f.test.find(id).iterator().next()
-        assert(found == doc)
+        val found = f.test.find(id).firstOption
+        assert(found == Some(doc))
       }
     }
   }

@@ -1,16 +1,21 @@
 package adt.bson.mongo
 
 import adt.bson._
-import adt.bson.mongo.BsonAdtImplicits.{JavaBsonDocumentOps, JavaBsonValueOps, BsonAdtObjectOps, BsonAdtValueOps}
+import adt.bson.mongo.BsonAdtImplicits._
 import adt.bson.mongo.codecs.BsonAdtCodec
-import org.bson.{BsonDocumentReader, BsonDocumentWriter}
-import org.bson.codecs.{DecoderContext, EncoderContext}
+import com.mongodb.Block
 import org.bson.codecs.configuration.CodecRegistry
+import org.bson.codecs.{DecoderContext, EncoderContext}
+import org.bson.conversions.{Bson => BsonConversion}
+import org.bson.{BsonDocumentReader, BsonDocumentWriter}
 
-import scala.language.implicitConversions
+import scala.collection.JavaConversions.seqAsJavaList
+import scala.language.{higherKinds, implicitConversions}
 
 /**
  * Adds implicit conversions between [[JavaBsonValue]] and [[BsonValue]].
+ *
+ * @note these are provided when you `import adt.bson.mongo._`
  */
 trait BsonAdtImplicits {
 
@@ -21,13 +26,19 @@ trait BsonAdtImplicits {
   implicit def bsonDocumentAsAdt(doc: JavaBsonDocument): JavaBsonDocumentOps = new JavaBsonDocumentOps(doc)
 
   // Adds org.bson.conversions.Bson without using inheritence
-  implicit def asBsonConversion(adt: BsonObject): org.bson.conversions.Bson = {
+  implicit def asBsonConversion(adt: BsonObject): BsonConversion = {
     new org.bson.conversions.Bson {
       override def toBsonDocument[TDocument](documentClass: Class[TDocument], codecRegistry: CodecRegistry): JavaBsonDocument = {
         adt.toJavaBsonDocument
       }
     }
   }
+
+  implicit def asBsonPipeline(objs: Seq[BsonObject]): java.util.List[BsonConversion] = objs map asBsonConversion
+
+  implicit def asMongoFunction[P, R](f: P => R): com.mongodb.Function[P, R] = new MongoFunction(f)
+
+  implicit def blockAsScala[R](block: R => Unit): com.mongodb.Block[R] = new MongoBlock(block)
 
 }
 

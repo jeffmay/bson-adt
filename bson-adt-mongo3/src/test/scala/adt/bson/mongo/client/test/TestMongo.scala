@@ -16,11 +16,15 @@ object TestMongo {
 
   /**
    * Cache the clients, since we don't want too many of them.
+   *
+   * clients are async and don't provide a mechanism to await their completion, but they clean
+   * up after themselves when the JVM shuts down.
    */
-  private val clients = Map.empty[ServerAddress, MongoClient].withDefault(
+  private val clients = Map.empty[ServerAddress, MongoClient].withDefault(address =>
     new MongoClient(
-      _,
+      address,
       MongoClientOptions.builder()
+        .legacyDefaults()
         .codecRegistry(CodecRegistries.fromProviders(
           BsonAdtCodecProvider,
           new DocumentCodecProvider(),
@@ -29,14 +33,9 @@ object TestMongo {
     )
   )
 
-  /**
-   * Provides a client
-   */
   def withClient(address: ServerAddress = new ServerAddress())(f: MongoClient => Unit): Unit = {
     val client = clients(address)
     f(client)
-    // clients are async and don't provide a mechanism to await their completion, but they clean
-    // up after themselves when the JVM shuts down.
   }
 
   def withDatabase(dbName: String, client: MongoClient)
