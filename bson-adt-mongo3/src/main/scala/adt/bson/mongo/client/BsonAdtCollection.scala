@@ -1,7 +1,6 @@
 package adt.bson.mongo.client
 
-import adt.bson.mongo.BsonAdtImplicits
-import adt.bson.{BsonJavaScript, BsonObject}
+import adt.bson._
 import com.mongodb.bulk.BulkWriteResult
 import com.mongodb.client._
 import com.mongodb.client.model._
@@ -28,8 +27,8 @@ class BsonAdtCollection(underlying: MongoCollection[BsonObject]) extends BsonAdt
   def aggregate(pipeline: Seq[BsonObject]): ScalaAggregateIterable[BsonObject] =
     new ScalaAggregateIterable(underlying.aggregate(pipeline))
 
-  def distinct(fieldName: String): ScalaDistinctIterable[BsonObject] =
-    new ScalaDistinctIterable(underlying.distinct(fieldName, classOf[BsonObject]))
+  def distinct(fieldName: String): ScalaDistinctIterable[BsonValue] =
+    new ScalaDistinctIterable(underlying.distinct(fieldName, classOf[BsonValue]))
 
   def updateMany(filter: BsonObject, update: BsonObject): UpdateResult =
     underlying.updateMany(filter, update)

@@ -1,8 +1,9 @@
 package adt.bson.mongo.codecs
 
-import adt.bson.{BsonValue, _}
 import adt.bson.mongo._
+import adt.bson.{BsonFormat, BsonValue, _}
 import org.bson._
+import org.bson.codecs.configuration.CodecRegistry
 import org.bson.codecs.{Codec, DecoderContext, EncoderContext}
 
 import scala.language.implicitConversions
@@ -15,9 +16,12 @@ import scala.reflect.ClassTag
  * and want to utilize implicits.
  */
 object BsonCodecImplicits extends BsonCodecImplicits
+
 trait BsonCodecImplicits extends BsonCodecLowPriorityImplicits {
 
   implicit def bsonValueCodec: Codec[BsonValue] = BsonAdtCodec
+
+  implicit def codecRegistry: CodecRegistry = BsonAdtCodecRegistry
 
   /**
    * Uses the [[BsonAdtImplicits]] to read and write [[JavaBsonValue]]s.

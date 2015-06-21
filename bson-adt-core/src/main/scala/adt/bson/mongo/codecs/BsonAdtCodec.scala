@@ -1,7 +1,6 @@
 package adt.bson.mongo.codecs
 
 import adt.bson._
-import adt.bson.mongo._
 import org.bson.codecs._
 import org.bson.{BsonReader, BsonRegularExpression, BsonType, BsonWriter}
 import org.joda.time.{DateTime, DateTimeZone}

@@ -1,6 +1,6 @@
 package adt.bson.mongo.codecs
 
-import adt.bson.BsonObject
+import adt.bson.{BsonObject, BsonValue}
 import org.bson.codecs.Codec
 import org.bson.codecs.configuration.{CodecProvider, CodecRegistry}
 
@@ -21,7 +21,7 @@ import org.bson.codecs.configuration.{CodecProvider, CodecRegistry}
 object BsonAdtCodecProvider extends CodecProvider {
 
   override def get[T](clazz: Class[T], registry: CodecRegistry): Codec[T] = {
-    if (clazz == classOf[BsonObject]) BsonAdtCodec.asInstanceOf[Codec[T]]
+    if (clazz == classOf[BsonObject] || clazz == classOf[BsonValue]) BsonAdtCodec.asInstanceOf[Codec[T]]
     else null  // as the documentation states, a null value means to skip this provider
   }
 }

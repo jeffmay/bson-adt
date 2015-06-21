@@ -1,7 +1,5 @@
 package adt.bson.mongo.client
 
-import java.util
-
 import adt.bson.mongo.MongoBlock
 import adt.bson.mongo.client.ScalaMongoCursor.ServerOps
 import adt.bson.{BsonJavaScript, BsonObject}
@@ -170,7 +168,7 @@ class ScalaMongoIterable[T](underlying: MongoIterable[T]) {
 
   def firstOption: Option[T] = Option(underlying.first())
 
-  def map[U](f: T => U): ScalaMongoIterable[U] = new ScalaMongoIterable(underlying.map(f))
+  def map[U](f: T => U): ScalaMongoIterable[U] = new ScalaMongoIterable(underlying map f)
 
   def to[C[_]](implicit bf: CanBuildFrom[Iterable[_], T, C[T]]): C[T] = {
     val list = new mutable.LinkedList[T]()

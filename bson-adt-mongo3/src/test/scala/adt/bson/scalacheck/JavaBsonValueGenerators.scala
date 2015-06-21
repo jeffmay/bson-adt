@@ -2,7 +2,7 @@ package adt.bson.scalacheck
 
 import adt.bson.mongo._
 import adt.bson.scalacheck.RegexGenerators._
-import adt.bson.{Bson, BsonWrites}
+import adt.bson.{JavaBsonDocument, Bson, BsonWrites}
 import org.bson._
 import org.bson.types.ObjectId
 import org.joda.time.DateTime

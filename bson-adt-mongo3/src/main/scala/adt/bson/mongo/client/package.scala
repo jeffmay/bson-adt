@@ -1,3 +1,5 @@
 package adt.bson.mongo
 
-package object client extends BsonClientImplicits with JavaWriteModels with BsonAdtImplicits
+import adt.bson.BsonAdtImplicits
+
+package object client extends BsonAdtImplicits with BsonClientImplicits with FunctionImplicits with JavaWriteModels
