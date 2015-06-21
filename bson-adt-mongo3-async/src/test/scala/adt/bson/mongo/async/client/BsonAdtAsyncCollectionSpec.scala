@@ -1,17 +1,24 @@
-package adt.bson.mongo.client
+package adt.bson.mongo.async.client
 
+import adt.bson.mongo.client.model.InsertOneModel
 import adt.bson.scalacheck.BsonValueGenerators
 import adt.bson.{Bson, BsonObject}
 import org.bson.types.ObjectId
-import org.scalatest._
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
+import org.scalatest.{ParallelTestExecution, Outcome, fixture}
 
-class BsonAdtCollectionSpec
+import scala.concurrent.duration._
+
+class BsonAdtAsyncCollectionSpec
   extends fixture.FlatSpec
   with ParallelTestExecution
+  with ScalaFutures
   with GeneratorDrivenPropertyChecks
-  with BeforeAndAfterAll
   with BsonValueGenerators {
+
+  override implicit val patienceConfig: PatienceConfig =
+    PatienceConfig(timeout = scaled(1.second), interval = scaled(50.milliseconds))
 
   override implicit val generatorDrivenConfig: PropertyCheckConfig = PropertyCheckConfig(
     minSuccessful = 10,
@@ -20,7 +27,7 @@ class BsonAdtCollectionSpec
     workers = 1
   )
 
-  type FixtureParam = BsonAdtCollection
+  override type FixtureParam = BsonAdtAsyncCollection
 
   override protected def withFixture(test: OneArgTest): Outcome = {
     TestMongo.withDatabase("BsonAdtCodecProviderSpec") { db =>
@@ -34,8 +41,8 @@ class BsonAdtCollectionSpec
     forAll() { (bson: BsonObject) =>
       val id = Bson.obj("_id" -> new ObjectId())
       val doc = bson ++ id
-      test.insertOne(doc)
-      val found = test.find(id).headOption
+      val _ = test.insertOne(doc).futureValue
+      val found = test.find(id).first().futureValue
       assert(found === Some(doc))
     }
   }
@@ -45,12 +52,12 @@ class BsonAdtCollectionSpec
       val docsAndIds = docs zip (Stream continually new ObjectId())
       val docsWithIds = docsAndIds.map { case (doc, id) => doc ++ Bson.obj("_id" -> id) }
       whenever(docs.nonEmpty) {
-        val result = test.bulkWrite(docsWithIds.map(InsertOneModel(_)))
-        assert(result.getInsertedCount === docs.size)
+        val result = test.bulkWrite(docsWithIds.map(InsertOneModel(_))).futureValue
+        assert(result.asAcknowledged.inserted === docs.size)
       }
       val ids = docsAndIds.map(_._2)
       val cursor = test.find(Bson.obj("_id" -> Bson.obj("$in" -> ids)))
-      val found = cursor.toVector
+      val found = cursor.sequence().futureValue
       assert(found === docsWithIds)
     }
   }
@@ -61,15 +68,13 @@ class BsonAdtCollectionSpec
       val docsWithIds = docsAndIds.map { case (doc, id) => doc ++ Bson.obj("_id" -> id) }
       val bulkInsert = docsWithIds.map(InsertOneModel(_))
       whenever(docs.nonEmpty) {
-        val result = test.bulkWrite(bulkInsert)
-        assert(result.getInsertedCount === docs.size)
+        val result = test.bulkWrite(bulkInsert).futureValue
+        assert(result.asAcknowledged.inserted === docs.size)
       }
       val ids = docsAndIds.map(_._2)
       val cursor = test.find(Bson.obj("_id" -> Bson.obj("$in" -> ids)))
-      val foundSorted = cursor.toVector.sortBy(doc => (doc \ "_id").as[ObjectId])
-      val expectedSorted = docsWithIds.sortBy(doc => (doc \ "_id").as[ObjectId])
-      assert(foundSorted === expectedSorted)
+      val found = cursor.sequence().futureValue
+      assert(found == docsWithIds)
     }
   }
 }
-

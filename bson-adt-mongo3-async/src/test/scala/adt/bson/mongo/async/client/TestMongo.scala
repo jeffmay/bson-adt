@@ -1,9 +1,7 @@
-package adt.bson.mongo.client
+package adt.bson.mongo.async.client
 
-import adt.bson.mongo.codecs.BsonAdtCodecRegistry
-import com.mongodb.{MongoClient, MongoClientOptions, ServerAddress}
-
-import scala.collection.JavaConversions.asScalaIterator
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.util.Try
 
 /**
@@ -11,10 +9,7 @@ import scala.util.Try
  */
 object TestMongo {
 
-  /**
-   * Cleaned up by [[adt.bson.test.Cleanup]]
-   */
-  private var client: MongoClient = null
+  private var client: BsonAdtAsyncClient = null
 
   def shutdown(): Unit = {
     if (client ne null) {
@@ -22,36 +17,32 @@ object TestMongo {
     }
   }
 
-  def withClient[T]()(f: MongoClient => T): T = {
+  def withClient[T]()(f: BsonAdtAsyncClient => T): T = {
     if (client eq null) {
-      client = new MongoClient(
-        new ServerAddress(),
-        MongoClientOptions.builder()
-          .codecRegistry(BsonAdtCodecRegistry)
-          .build()
-      )
+      client = BsonAdtAsyncClient.localhost()
     }
     f(client)
   }
 
-  def withDatabase[T](dbName: String, client: MongoClient)(f: BsonAdtDatabase => T): T = {
+  def withDatabase[T](dbName: String, client: BsonAdtAsyncClient)(f: BsonAdtAsyncMongoDatabase => T): T = {
     val db = synchronized {
       val fullDbName = s"${dbName}_${nextDbN(client, dbName)}"
-      new BsonAdtDatabase(client.getDatabase(fullDbName))
+      client.getDatabase(fullDbName)
     }
     try f(db)
     finally db.drop()
   }
 
-  def withDatabase[T](dbName: String)(f: BsonAdtDatabase => T): T = {
+  def withDatabase[T](dbName: String)(f: BsonAdtAsyncMongoDatabase => T): T = {
     withClient() { client =>
       withDatabase(dbName, client) { db =>
-        f(db)
+        try f(db)
+        finally db.drop()
       }
     }
   }
 
-  def withCollection[T](name: String, db: BsonAdtDatabase)(f: BsonAdtCollection => T): T = {
+  def withCollection[T](name: String, db: BsonAdtAsyncMongoDatabase)(f: BsonAdtAsyncCollection => T): T = {
     val col = synchronized {
       val fullDbName = s"${name}_${nextCollectionN(db, name)}"
       db.getCollection(fullDbName)
@@ -60,13 +51,14 @@ object TestMongo {
     finally col.drop()
   }
 
-  private def nextDbN(mongo: MongoClient, dbName: String): Int = {
-    val allDbNames = mongo.listDatabases().iterator().map(_.get("name", classOf[String])).toStream
+
+  private def nextDbN(mongo: BsonAdtAsyncClient, dbName: String): Int = {
+    val allDbNames = Await.result(mongo.listDatabaseNames().sequence(), 5.seconds)
     nextN(allDbNames, dbName)
   }
 
-  private def nextCollectionN(db: BsonAdtDatabase, collectionName: String): Int = {
-    val allCollectionNames = db.listCollectionNames().toStream
+  private def nextCollectionN(db: BsonAdtAsyncMongoDatabase, collectionName: String): Int = {
+    val allCollectionNames = Await.result(db.listCollectionNames().sequence(), 5.seconds)
     nextN(allCollectionNames, collectionName)
   }
 
