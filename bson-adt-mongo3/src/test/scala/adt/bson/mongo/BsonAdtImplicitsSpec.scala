@@ -1,6 +1,6 @@
 package adt.bson.mongo
 
-import adt.bson.BsonValue
+import adt.bson.{BsonAdtImplicits, BsonValue}
 import adt.bson.scalacheck.{BsonValueGenerators, JavaBsonValueGenerators}
 import org.scalatest.FlatSpec
 import org.scalatest.prop.GeneratorDrivenPropertyChecks

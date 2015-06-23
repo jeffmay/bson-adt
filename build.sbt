@@ -80,8 +80,14 @@ lazy val `bson-adt-casbah` = (project in file("bson-adt-casbah")).settings(commo
 lazy val `bson-adt-mongo` = (project in file("bson-adt-mongo3")).settings(common).settings(
   name := "bson-adt-mongo",
   libraryDependencies ++= Seq(
-    "org.mongodb" % "mongo-java-driver" % "3.0.2"
-  )
+    "org.mongodb" % "mongodb-driver-core" % "3.0.2",
+    "org.mongodb" % "mongodb-driver" % "3.0.2"
+  ),
+  testOptions in Test += Tests.Cleanup {
+    (loader: java.lang.ClassLoader) =>
+      println("Running test cleanup for bson-adt-mongo project...")
+      loader.loadClass("adt.bson.test.Cleanup").newInstance
+  }
 ).dependsOn(
     `bson-adt-core` % "compile->compile;test->test"
   )

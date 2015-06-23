@@ -1,9 +1,8 @@
-package adt.bson.mongo
+package adt.bson
 
 import org.bson.BsonElement
 
-import scala.collection.JavaConversions.iterableAsScalaIterable
-import scala.collection.JavaConversions.seqAsJavaList
+import scala.collection.JavaConversions.{collectionAsScalaIterable, seqAsJavaList}
 
 /**
  * Provides handy type aliases for consistency and avoiding namespace clashes.
