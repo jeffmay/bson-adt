@@ -1,6 +1,6 @@
 Bson ADT
 ========
-[ ![Download](https://api.bintray.com/packages/jeffmay/maven/bson-adt/images/download.svg) ](https://bintray.com/jeffmay/maven/bson-adt/_latestVersion)
+[ ![Download](https://api.bintray.com/packages/jeffmay/maven/bson-adt-core/images/download.svg) ](https://bintray.com/jeffmay/maven/bson-adt-core/_latestVersion)
 
 A closed generic algebraic data type for Bson serialization and deserialization in Scala
 
