@@ -33,7 +33,7 @@ object BulkWriteResult {
     if (result.wasAcknowledged())
       AcknowledgedBulkWriteResult(
         result.getInsertedCount,
-        result.getModifiedCount,
+        result.getMatchedCount,
         result.getDeletedCount,
         Try(result.getModifiedCount),
         result.getUpserts.toSeq.map(BulkWriteUpsert.from)

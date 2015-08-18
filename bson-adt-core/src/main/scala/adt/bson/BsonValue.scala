@@ -135,10 +135,9 @@ case class BsonBinary(value: Array[Byte]) extends BsonPrimitive with Proxy {
 case class BsonRegex(value: Regex) extends BsonPrimitive with Proxy {
   override type ScalaType = Regex
   @inline final override def Type: BsonType = BsonType.REGULAR_EXPRESSION
+  @inline final override def self: Any = pattern
 
   val pattern: String = value.pattern.pattern()
-
-  @inline final override def self: Any = pattern
 }
 
 case class BsonObjectId(value: ObjectId) extends BsonPrimitive {
@@ -146,15 +145,26 @@ case class BsonObjectId(value: ObjectId) extends BsonPrimitive {
   @inline final override def Type: BsonType = BsonType.OBJECT_ID
 }
 
-case class BsonDate(value: DateTime) extends BsonPrimitive {
+/**
+ * Represents a DateTime in UTC.
+ *
+ * @param value the DateTime in UTC.
+ */
+class BsonDate private[BsonDate] (override val value: DateTime) extends BsonPrimitive with Proxy {
   override type ScalaType = DateTime
   @inline final override def Type: BsonType = BsonType.DATE_TIME
-
-  def this(millis: Long) = this(new DateTime(millis, DateTimeZone.UTC))
+  @inline final override def self: Any = value
 }
 object BsonDate extends (DateTime => BsonDate) {
 
-  def apply(millis: Long): BsonDate = new BsonDate(millis)
+  override def apply(value: DateTime): BsonDate = {
+    val utc = if (value.getZone == DateTimeZone.UTC) value else value.withZone(DateTimeZone.UTC)
+    new BsonDate(utc)
+  }
+
+  def apply(millis: Long): BsonDate = new BsonDate(new DateTime(millis, DateTimeZone.UTC))
+
+  def unapply(bson: BsonDate): Option[DateTime] = Some(bson.value)
 }
 
 // This is currently not integrated into the ADT, but it will be soon, so this is a placeholder
