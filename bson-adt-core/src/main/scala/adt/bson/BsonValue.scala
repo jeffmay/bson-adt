@@ -76,10 +76,44 @@ sealed trait BsonValue {
 
 /**
  * Any [[BsonValue]] that can exist inside of another [[BsonContainer]], but has no children itself.
- *
- * @note this
  */
 sealed trait BsonPrimitive extends BsonValue
+
+object BsonPrimitive {
+
+  def apply[T <: AnyVal : BsonWrites](value: T): BsonPrimitive = {
+    val bson = Bson.toBson(value)
+    bson match {
+      case BsonPrimitive(prim) =>
+      case other =>
+        throw new IllegalArgumentException(s"BsonWrites for value $value did not produce a BsonPrimitive, but instead produced $bson")
+    }
+  }
+
+  def unapply(bson: BsonValue): Option[BsonPrimitive] = bson match {
+    case prim: BsonPrimitive => Some(prim)
+    case _ => None
+  }
+}
+
+/**
+ * TODO: Expand this out in the next major version.
+ *
+ * Soon all numeric [[BsonValue]]s extend from this trait.
+ */
+sealed trait BsonNumber extends BsonValue
+
+object BsonNumber {
+
+  @deprecated("Use BsonDouble(value) instead.", "1.3.1")
+  def apply(value: Double): BsonDouble = BsonDouble(value)
+
+  @deprecated("Use case BsonDouble(value) instead", "1.3.1")
+  def unapply(bson: BsonNumber): Option[Double] = bson match {
+    case BsonDouble(value) => Some(value)
+    case _ => None
+  }
+}
 
 /**
  * Any [[BsonValue]] that can potentially contain [[BsonPrimitive]] children.
@@ -94,7 +128,7 @@ case class BsonBoolean(value: Boolean) extends BsonPrimitive {
   @inline final override def Type: BsonType = BsonType.BOOLEAN
 }
 
-case class BsonNumber(value: Double) extends BsonPrimitive {
+case class BsonDouble(value: Double) extends BsonPrimitive with BsonNumber {
   override type ScalaType = Double
   @inline final override def Type: BsonType = BsonType.DOUBLE
 }
