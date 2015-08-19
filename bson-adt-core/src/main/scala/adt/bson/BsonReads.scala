@@ -176,7 +176,7 @@ trait DefaultBsonReads {
     override def reads(bson: BsonValue): Short = bson match {
       case BsonInt(value) => validShort(value)
       case BsonLong(value) => validShort(value)
-      case BsonNumber(value) => validShort(value)
+      case BsonDouble(value) => validShort(value)
       case _ => throw new UnexpectedBsonException("error.expected.int", bson)  // BSON does not have a type Short
     }
   }
@@ -185,7 +185,7 @@ trait DefaultBsonReads {
     override def reads(bson: BsonValue): Int = bson match {
       case BsonInt(value) => value
       case BsonLong(value) => validInt(value)
-      case BsonNumber(value) => validInt(value)
+      case BsonDouble(value) => validInt(value)
       case _ => throw new UnexpectedBsonException("error.expected.int", bson)
     }
   }
@@ -194,7 +194,7 @@ trait DefaultBsonReads {
     override def reads(bson: BsonValue): Long = bson match {
       case BsonInt(value) => value.toLong
       case BsonLong(value) => value
-      case BsonNumber(value) => validLong(value)
+      case BsonDouble(value) => validLong(value)
       case _ => throw new UnexpectedBsonException("error.expected.long", bson)
     }
   }
@@ -203,7 +203,7 @@ trait DefaultBsonReads {
     override def reads(bson: BsonValue): Float = bson match {
       case BsonInt(value) => validFloat(value)
       case BsonLong(value) => validFloat(value)
-      case BsonNumber(value) => validFloat(value)
+      case BsonDouble(value) => validFloat(value)
       case _ => throw new UnexpectedBsonException("error.expected.number", bson)  // BSON does not have a type Float
     }
   }
@@ -212,7 +212,7 @@ trait DefaultBsonReads {
     override def reads(bson: BsonValue): Double = bson match {
       case BsonInt(value) => value.toDouble
       case BsonLong(value) => value.toDouble
-      case BsonNumber(value) => value
+      case BsonDouble(value) => value
       case _ => throw new UnexpectedBsonException("error.expected.number", bson)
     }
   }
@@ -221,7 +221,7 @@ trait DefaultBsonReads {
     override def reads(bson: BsonValue): BigDecimal = bson match {
       case BsonInt(value) => value
       case BsonLong(value) => value
-      case BsonNumber(value) => value
+      case BsonDouble(value) => value
       case _ => throw new UnexpectedBsonException("error.expected.number", bson)
     }
   }

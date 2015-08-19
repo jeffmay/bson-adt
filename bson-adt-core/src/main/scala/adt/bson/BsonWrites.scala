@@ -144,11 +144,11 @@ trait DefaultBsonWrites {
   }
 
   implicit object BsonWritesFloat extends BsonWrites[Float] {
-    override def writes(value: Float): BsonValue = BsonNumber(value)
+    override def writes(value: Float): BsonValue = BsonDouble(value)
   }
 
   implicit object BsonWritesDouble extends BsonWrites[Double] {
-    override def writes(value: Double): BsonValue = BsonNumber(value)
+    override def writes(value: Double): BsonValue = BsonDouble(value)
   }
 
   implicit def optionWrites[T](implicit writer: BsonWrites[T]): BsonWrites[Option[T]] = {
