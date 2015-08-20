@@ -5,7 +5,9 @@ import scala.concurrent.duration._
 import scala.util.Try
 
 /**
- * Provides temporary collections that are automatically cleaned up.
+ * Provides temporary collections that are automatically cleaned by [[adt.bson.test.Cleanup]].
+ *
+ * @note this currently does not work in conjunction with ParallelTestExecution
  */
 object TestMongo {
 
