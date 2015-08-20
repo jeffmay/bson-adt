@@ -1,8 +1,7 @@
 package adt.bson.mongo.codecs
 
-import adt.bson.{BsonObject, BsonValue}
-import adt.bson.mongo._
 import adt.bson.scalacheck._
+import adt.bson.{BsonObject, BsonValue, _}
 import org.bson.codecs.{Codec, DecoderContext, EncoderContext}
 import org.bson.{BsonDocument, BsonDocumentReader, BsonDocumentWriter}
 import org.scalatest.FlatSpec

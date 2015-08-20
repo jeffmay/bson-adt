@@ -76,9 +76,9 @@ object TestMongo {
   private def nextN(allNames: Seq[String], newName: String): Int = {
     val matchingNamesSorted =
       allNames.map { name =>
-        if (name.startsWith(name)) {
+        if (name.startsWith(newName)) {
           Try {
-            val suffix = name.substring(name.length + 1)
+            val suffix = name.substring(newName.length + 1)
             suffix.toInt
           }.toOption
         }

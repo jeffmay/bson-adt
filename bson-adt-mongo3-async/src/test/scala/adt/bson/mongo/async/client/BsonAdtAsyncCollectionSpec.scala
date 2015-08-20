@@ -2,7 +2,7 @@ package adt.bson.mongo.async.client
 
 import adt.bson.mongo.client.model.InsertOneModel
 import adt.bson.scalacheck.BsonValueGenerators
-import adt.bson.{Bson, BsonObject}
+import adt.bson.{BsonArray, BsonAssertions, Bson, BsonObject}
 import org.bson.types.ObjectId
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
@@ -12,7 +12,8 @@ import scala.concurrent.duration._
 
 class BsonAdtAsyncCollectionSpec
   extends fixture.FlatSpec
-  with ParallelTestExecution
+  with BsonAssertions
+//  with ParallelTestExecution  // TODO: Figure out how to generate unique test names better
   with ScalaFutures
   with GeneratorDrivenPropertyChecks
   with BsonValueGenerators {
@@ -23,17 +24,23 @@ class BsonAdtAsyncCollectionSpec
   override implicit val generatorDrivenConfig: PropertyCheckConfig = PropertyCheckConfig(
     minSuccessful = 10,
     maxDiscarded = 50,
-    maxSize = 10,
+    maxSize = 3,
     workers = 1
   )
 
   override type FixtureParam = BsonAdtAsyncCollection
 
   override protected def withFixture(test: OneArgTest): Outcome = {
-    TestMongo.withDatabase("BsonAdtCodecProviderSpec") { db =>
-      TestMongo.withCollection("test", db) { collection =>
-        test(collection)
+    TestMongo.withDatabase("BsonAdtAsyncCollectionSpec") { db =>
+      println(s"CREATED DB: ${db.name}")
+      val res = TestMongo.withCollection("test", db) { collection =>
+        println(s"CREATED COLLECTION: ${collection.namespace}")
+        val res = test(collection)
+        println(s"DROPPING COLLECTION: ${collection.namespace}")
+        res
       }
+      println(s"DROPPING DB: ${db.name}")
+      res
     }
   }
 
@@ -41,9 +48,11 @@ class BsonAdtAsyncCollectionSpec
     forAll() { (bson: BsonObject) =>
       val id = Bson.obj("_id" -> new ObjectId())
       val doc = bson ++ id
-      val _ = test.insertOne(doc).futureValue
+      val () = test.insertOne(doc).futureValue
       val found = test.find(id).first().futureValue
-      assert(found === Some(doc))
+      assert(found.isDefined,
+        s"Could not find inserted document in ${test.namespace}:\n${Bson.pretty(doc)}\nusing\n${Bson.inline(id)}")
+      assertEqualBson(found.get, doc)
     }
   }
 
@@ -58,7 +67,7 @@ class BsonAdtAsyncCollectionSpec
       val ids = docsAndIds.map(_._2)
       val cursor = test.find(Bson.obj("_id" -> Bson.obj("$in" -> ids)))
       val found = cursor.sequence().futureValue
-      assert(found === docsWithIds)
+      assertEqualBson(BsonArray(found), BsonArray(docsWithIds))
     }
   }
 
@@ -74,7 +83,7 @@ class BsonAdtAsyncCollectionSpec
       val ids = docsAndIds.map(_._2)
       val cursor = test.find(Bson.obj("_id" -> Bson.obj("$in" -> ids)))
       val found = cursor.sequence().futureValue
-      assert(found == docsWithIds)
+      assertEqualBson(BsonArray(found), BsonArray(docsWithIds))
     }
   }
 }
