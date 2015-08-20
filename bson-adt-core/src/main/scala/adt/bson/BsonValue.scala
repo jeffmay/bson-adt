@@ -84,9 +84,9 @@ object BsonPrimitive {
   def apply[T <: AnyVal : BsonWrites](value: T): BsonPrimitive = {
     val bson = Bson.toBson(value)
     bson match {
-      case BsonPrimitive(prim) =>
-      case other =>
-        throw new IllegalArgumentException(s"BsonWrites for value $value did not produce a BsonPrimitive, but instead produced $bson")
+      case BsonPrimitive(prim) => prim
+      case other => throw new IllegalArgumentException(
+          s"BsonWrites for value $value did not produce a BsonPrimitive, but instead produced $bson")
     }
   }
 

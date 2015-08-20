@@ -1,8 +1,6 @@
 package adt.bson
 
-import java.util
-
-import adt.bson.scalacheck.{RegexGenerators, BsonValueGenerators}
+import adt.bson.scalacheck.{BsonValueGenerators, RegexGenerators}
 import org.bson.types.ObjectId
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalactic.Tolerance
@@ -68,7 +66,7 @@ with RegexGenerators {
 
   it should "write Binary properly" in {
     forAll { (value: Array[Byte]) =>
-      val clone = util.Arrays.copyOf(value, value.length)
+      val clone = java.util.Arrays.copyOf(value, value.length)
       assert(Bson.toBson(value) == BsonBinary(clone))
     }
   }

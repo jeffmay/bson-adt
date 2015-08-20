@@ -53,7 +53,8 @@ lazy val `bson-adt-core` = (project in file("bson-adt-core")).settings(common).s
   name := "bson-adt-core",
   libraryDependencies ++= Seq(
     "com.typesafe.play" %% "play-functional" % "2.4.0-M2",
-    "org.mongodb" % "bson" % "3.0.0"
+    "org.mongodb" % "bson" % "3.0.0",
+    "junit" % "junit" % "4.12" % "test"
   )
 )
 
