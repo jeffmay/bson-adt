@@ -49,7 +49,7 @@ lazy val common = commonRootSettings ++ Seq(
 
 ) ++ bintraySettings ++ bintrayPublishSettings
 
-lazy val `bson-adt-core` = (project in file("bson-adt-core")).settings(common).settings(
+lazy val core = (project in file("bson-adt-core")).settings(common).settings(
   name := "bson-adt-core",
   libraryDependencies ++= Seq(
     "com.typesafe.play" %% "play-functional" % "2.4.0-M2",
@@ -58,27 +58,27 @@ lazy val `bson-adt-core` = (project in file("bson-adt-core")).settings(common).s
   )
 )
 
-lazy val `bson-adt-mongo2` = (project in file("bson-adt-mongo2")).settings(common).settings(
+lazy val mongo2 = (project in file("bson-adt-mongo2")).settings(common).settings(
   name := "bson-adt-mongo2",
   libraryDependencies ++= Seq(
     "com.typesafe.play" %% "play-functional" % "2.4.0-M2",
     "org.mongodb" % "mongo-java-driver" % "2.13.1"
   )
 ).dependsOn(
-    `bson-adt-core` % "compile->compile;test->test"
+    core % "compile->compile;test->test"
   )
 
-lazy val `bson-adt-casbah` = (project in file("bson-adt-casbah")).settings(common).settings(
+lazy val casbah = (project in file("bson-adt-casbah")).settings(common).settings(
   name := "bson-adt-casbah",
   libraryDependencies ++= Seq(
     "org.mongodb" %% "casbah-core" % "2.8.0",
     "org.mongodb" %% "casbah-query" % "2.8.0"
   )
 ).dependsOn(
-    `bson-adt-mongo2` % "compile->compile;test->test"
+    mongo2 % "compile->compile;test->test"
   )
 
-lazy val `bson-adt-mongo` = (project in file("bson-adt-mongo3")).settings(common).settings(
+lazy val mongo = (project in file("bson-adt-mongo3")).settings(common).settings(
   name := "bson-adt-mongo",
   libraryDependencies ++= Seq(
     "org.mongodb" % "mongodb-driver-core" % "3.0.2",
@@ -90,10 +90,10 @@ lazy val `bson-adt-mongo` = (project in file("bson-adt-mongo3")).settings(common
       loader.loadClass("adt.bson.test.Cleanup").newInstance
   }
 ).dependsOn(
-    `bson-adt-core` % "compile->compile;test->test"
+    core % "compile->compile;test->test"
   )
 
-lazy val `bson-adt-mongo-async` = (project in file("bson-adt-mongo3-async")).settings(common).settings(
+lazy val `mongo-async` = (project in file("bson-adt-mongo3-async")).settings(common).settings(
   name := "bson-adt-mongo-async",
   libraryDependencies ++= Seq(
     "org.mongodb" % "mongodb-driver-core" % "3.0.2",
@@ -105,5 +105,5 @@ lazy val `bson-adt-mongo-async` = (project in file("bson-adt-mongo3-async")).set
       loader.loadClass("adt.bson.test.Cleanup").newInstance
   }
 ).dependsOn(
-    `bson-adt-core` % "compile->compile;test->test"
+    core % "compile->compile;test->test"
   )
