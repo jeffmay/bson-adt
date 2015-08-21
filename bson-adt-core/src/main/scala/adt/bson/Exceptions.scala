@@ -8,4 +8,4 @@ package adt.bson
  * @param message The detailed message with enough information to debug. This is what is printed in the stack trace.
  */
 class UnexpectedBsonException(errorCode: String, bson: BsonValue, message: String = null)
-  extends Exception(Option(message) getOrElse s"Error ($errorCode) while reading BSON: ${Bson.prettyPrint(bson)}")
+  extends Exception(Option(message) getOrElse s"Error ($errorCode) while reading BSON: ${Bson.pretty(bson)}")

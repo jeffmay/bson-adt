@@ -76,10 +76,44 @@ sealed trait BsonValue {
 
 /**
  * Any [[BsonValue]] that can exist inside of another [[BsonContainer]], but has no children itself.
- *
- * @note this
  */
 sealed trait BsonPrimitive extends BsonValue
+
+object BsonPrimitive {
+
+  def apply[T <: AnyVal : BsonWrites](value: T): BsonPrimitive = {
+    val bson = Bson.toBson(value)
+    bson match {
+      case BsonPrimitive(prim) => prim
+      case other => throw new IllegalArgumentException(
+          s"BsonWrites for value $value did not produce a BsonPrimitive, but instead produced $bson")
+    }
+  }
+
+  def unapply(bson: BsonValue): Option[BsonPrimitive] = bson match {
+    case prim: BsonPrimitive => Some(prim)
+    case _ => None
+  }
+}
+
+/**
+ * TODO: Expand this out in the next major version.
+ *
+ * Soon all numeric [[BsonValue]]s extend from this trait.
+ */
+sealed trait BsonNumber extends BsonValue
+
+object BsonNumber {
+
+  @deprecated("Use BsonDouble(value) instead.", "1.3.1")
+  def apply(value: Double): BsonDouble = BsonDouble(value)
+
+  @deprecated("Use case BsonDouble(value) instead", "1.3.1")
+  def unapply(bson: BsonNumber): Option[Double] = bson match {
+    case BsonDouble(value) => Some(value)
+    case _ => None
+  }
+}
 
 /**
  * Any [[BsonValue]] that can potentially contain [[BsonPrimitive]] children.
@@ -94,7 +128,7 @@ case class BsonBoolean(value: Boolean) extends BsonPrimitive {
   @inline final override def Type: BsonType = BsonType.BOOLEAN
 }
 
-case class BsonNumber(value: Double) extends BsonPrimitive {
+case class BsonDouble(value: Double) extends BsonPrimitive with BsonNumber {
   override type ScalaType = Double
   @inline final override def Type: BsonType = BsonType.DOUBLE
 }
@@ -135,10 +169,9 @@ case class BsonBinary(value: Array[Byte]) extends BsonPrimitive with Proxy {
 case class BsonRegex(value: Regex) extends BsonPrimitive with Proxy {
   override type ScalaType = Regex
   @inline final override def Type: BsonType = BsonType.REGULAR_EXPRESSION
+  @inline final override def self: Any = pattern
 
   val pattern: String = value.pattern.pattern()
-
-  @inline final override def self: Any = pattern
 }
 
 case class BsonObjectId(value: ObjectId) extends BsonPrimitive {
@@ -146,15 +179,26 @@ case class BsonObjectId(value: ObjectId) extends BsonPrimitive {
   @inline final override def Type: BsonType = BsonType.OBJECT_ID
 }
 
-case class BsonDate(value: DateTime) extends BsonPrimitive {
+/**
+ * Represents a DateTime in UTC.
+ *
+ * @param value the DateTime in UTC.
+ */
+class BsonDate private[BsonDate] (override val value: DateTime) extends BsonPrimitive with Proxy {
   override type ScalaType = DateTime
   @inline final override def Type: BsonType = BsonType.DATE_TIME
-
-  def this(millis: Long) = this(new DateTime(millis, DateTimeZone.UTC))
+  @inline final override def self: Any = value
 }
 object BsonDate extends (DateTime => BsonDate) {
 
-  def apply(millis: Long): BsonDate = new BsonDate(millis)
+  override def apply(value: DateTime): BsonDate = {
+    val utc = if (value.getZone == DateTimeZone.UTC) value else value.withZone(DateTimeZone.UTC)
+    new BsonDate(utc)
+  }
+
+  def apply(millis: Long): BsonDate = new BsonDate(new DateTime(millis, DateTimeZone.UTC))
+
+  def unapply(bson: BsonDate): Option[DateTime] = Some(bson.value)
 }
 
 // This is currently not integrated into the ADT, but it will be soon, so this is a placeholder

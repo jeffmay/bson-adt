@@ -14,9 +14,12 @@ import scala.util.matching.Regex
 object BsonValueGenerators extends BsonValueGenerators
 trait BsonValueGenerators extends CommonGenerators {
 
+  protected def maxSize: Int = 3
+  protected def maxDepth: Int = 3
+
   implicit val arbBsonValue: Arbitrary[BsonValue] = Arbitrary {
     for {
-      depth <- Gen.choose(0, 3)
+      depth <- Gen.choose(0, maxSize)
       value <- genBsonValue(depth)
     } yield value
   }
@@ -37,8 +40,10 @@ trait BsonValueGenerators extends CommonGenerators {
     arbitrary[Long] map BsonLong
   }
 
-  implicit val arbBsonNumber: Arbitrary[BsonNumber] = Arbitrary {
-    arbitrary[Double] map BsonNumber
+  implicit def arbBsonNumber: Arbitrary[BsonNumber] = arbBsonDouble.asInstanceOf[Arbitrary[BsonNumber]]
+
+  implicit val arbBsonDouble: Arbitrary[BsonDouble] = Arbitrary {
+    arbitrary[Double] map BsonDouble
   }
 
   implicit val arbBsonString: Arbitrary[BsonString] = Arbitrary {
@@ -63,14 +68,14 @@ trait BsonValueGenerators extends CommonGenerators {
 
   implicit val arbBsonArray: Arbitrary[BsonArray] = Arbitrary {
     for {
-      depth <- Gen.choose(0, 3)
+      depth <- Gen.choose(0, maxDepth)
       array <- genBsonArray(depth)
     } yield array
   }
 
   implicit val arbBsonObject: Arbitrary[BsonObject] = Arbitrary {
     for {
-      depth <- Gen.choose(0, 3)
+      depth <- Gen.choose(0, maxDepth)
       obj <- genBsonObject(depth)
     } yield obj
   }
@@ -87,8 +92,10 @@ trait BsonValueGenerators extends CommonGenerators {
     shrinkSameSign(bson.value) map BsonLong
   }
 
-  implicit val shrinkBsonNumber: Shrink[BsonNumber] = Shrink { bson =>
-    Stream(BsonNumber(0))  // just try 0 and give up
+  implicit def shrinkBsonNumber: Shrink[BsonNumber] = shrinkBsonDouble.asInstanceOf[Shrink[BsonNumber]]
+
+  implicit val shrinkBsonDouble: Shrink[BsonDouble] = Shrink { bson =>
+    Stream(BsonDouble(0))  // just try 0 and give up
   }
 
   implicit val shrinkBsonString: Shrink[BsonString] = Shrink { bson =>
@@ -114,7 +121,7 @@ trait BsonValueGenerators extends CommonGenerators {
   }
 
   implicit val shrinkBsonObject: Shrink[BsonObject] = Shrink { bson =>
-    shrink[Map[String, BsonValue]](bson.value).map { fields =>
+    shrinkContainer2[Map, String, BsonValue].shrink(bson.value).map { fields =>
       BsonObject(fields)
     }
   }
@@ -125,7 +132,7 @@ trait BsonValueGenerators extends CommonGenerators {
     case it: BsonBoolean => shrink(it)
     case it: BsonInt => shrink(it)
     case it: BsonLong => shrink(it)
-    case it: BsonNumber => shrink(it)
+    case it: BsonDouble => shrink(it)
     case it: BsonString => shrink(it)
     case it: BsonObjectId => shrink(it)
     case it: BsonBinary => shrink(it)
@@ -135,7 +142,7 @@ trait BsonValueGenerators extends CommonGenerators {
     case BsonUndefined() => Stream.empty
   }
 
-  def genElementMax: Gen[Int] = Gen.sized(max => Gen.choose(0, Math.min(5, max)))
+  def genElementMax: Gen[Int] = Gen.choose(0, maxSize)
 
   private def genBson[A: BsonWrites](genValue: Gen[A]): Gen[BsonPrimitive] = for {
     value <- genValue

@@ -1,13 +1,17 @@
 package adt.bson.mongo.async.client
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, blocking}
 import scala.concurrent.duration._
 import scala.util.Try
 
 /**
- * Provides temporary collections that are automatically cleaned up.
+ * Provides temporary collections that are automatically cleaned by [[adt.bson.test.Cleanup]].
+ *
+ * @note this currently does not work in conjunction with ParallelTestExecution
  */
 object TestMongo {
+
+  private val defaultTimeout = 5.seconds
 
   private var client: BsonAdtAsyncClient = null
 
@@ -24,10 +28,14 @@ object TestMongo {
     f(client)
   }
 
-  def withDatabase[T](dbName: String, client: BsonAdtAsyncClient)(f: BsonAdtAsyncMongoDatabase => T): T = {
+  def withDatabase[T](dbName: String, client: BsonAdtAsyncClient, timeout: FiniteDuration = defaultTimeout)
+    (f: BsonAdtAsyncMongoDatabase => T): T = {
     val db = synchronized {
-      val fullDbName = s"${dbName}_${nextDbN(client, dbName)}"
-      client.getDatabase(fullDbName)
+      blocking {
+        val fullDbName = s"${dbName}_${nextDbN(client, dbName, timeout)}"
+        val db = client.getDatabase(fullDbName)
+        db
+      }
     }
     try f(db)
     finally db.drop()
@@ -42,23 +50,29 @@ object TestMongo {
     }
   }
 
-  def withCollection[T](name: String, db: BsonAdtAsyncMongoDatabase)(f: BsonAdtAsyncCollection => T): T = {
+  def withCollection[T](name: String, db: BsonAdtAsyncMongoDatabase, timeout: FiniteDuration = defaultTimeout)
+    (f: BsonAdtAsyncCollection => T): T = {
     val col = synchronized {
-      val fullDbName = s"${name}_${nextCollectionN(db, name)}"
-      db.getCollection(fullDbName)
+      blocking {
+        val fullDbName = s"${name}_${nextCollectionN(db, name, timeout)}"
+        val col = db.getCollection(fullDbName)
+        val docs = Await.result(col.find().sequence(), timeout)
+        require(docs.isEmpty, s"${col.namespace} has pre-existing documents '$name' must be unique within the database")
+        col
+      }
     }
     try f(col)
     finally col.drop()
   }
 
 
-  private def nextDbN(mongo: BsonAdtAsyncClient, dbName: String): Int = {
-    val allDbNames = Await.result(mongo.listDatabaseNames().sequence(), 5.seconds)
+  private def nextDbN(mongo: BsonAdtAsyncClient, dbName: String, timeout: FiniteDuration): Int = {
+    val allDbNames = Await.result(mongo.listDatabaseNames().sequence(), timeout)
     nextN(allDbNames, dbName)
   }
 
-  private def nextCollectionN(db: BsonAdtAsyncMongoDatabase, collectionName: String): Int = {
-    val allCollectionNames = Await.result(db.listCollectionNames().sequence(), 5.seconds)
+  private def nextCollectionN(db: BsonAdtAsyncMongoDatabase, collectionName: String, timeout: FiniteDuration): Int = {
+    val allCollectionNames = Await.result(db.listCollectionNames().sequence(), timeout)
     nextN(allCollectionNames, collectionName)
   }
 
@@ -68,9 +82,9 @@ object TestMongo {
   private def nextN(allNames: Seq[String], newName: String): Int = {
     val matchingNamesSorted =
       allNames.map { name =>
-        if (name.startsWith(name)) {
+        if (name.startsWith(newName)) {
           Try {
-            val suffix = name.substring(name.length + 1)
+            val suffix = name.substring(newName.length + 1)
             suffix.toInt
           }.toOption
         }

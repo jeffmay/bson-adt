@@ -7,13 +7,12 @@ import scala.collection.JavaConversions.asScalaIterator
 import scala.util.Try
 
 /**
- * Provides temporary collections that are automatically cleaned up.
+ * Provides temporary collections that are automatically cleaned up by [[adt.bson.test.Cleanup]].
+ *
+ * @note this currently does not work in conjunction with ParallelTestExecution
  */
 object TestMongo {
 
-  /**
-   * Cleaned up by [[adt.bson.test.Cleanup]]
-   */
   private var client: MongoClient = null
 
   def shutdown(): Unit = {
@@ -76,9 +75,9 @@ object TestMongo {
   private def nextN(allNames: Seq[String], newName: String): Int = {
     val matchingNamesSorted =
       allNames.map { name =>
-        if (name.startsWith(name)) {
+        if (name.startsWith(newName)) {
           Try {
-            val suffix = name.substring(name.length + 1)
+            val suffix = name.substring(newName.length + 1)
             suffix.toInt
           }.toOption
         }

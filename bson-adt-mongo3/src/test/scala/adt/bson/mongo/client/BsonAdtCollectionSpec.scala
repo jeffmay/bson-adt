@@ -1,14 +1,15 @@
 package adt.bson.mongo.client
 
 import adt.bson.scalacheck.BsonValueGenerators
-import adt.bson.{Bson, BsonObject}
+import adt.bson.{BsonAssertions, BsonArray, Bson, BsonObject}
 import org.bson.types.ObjectId
 import org.scalatest._
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 
 class BsonAdtCollectionSpec
   extends fixture.FlatSpec
-  with ParallelTestExecution
+  with BsonAssertions
+//  with ParallelTestExecution  // TODO: Figure out how to generate unique test names in parallel better
   with GeneratorDrivenPropertyChecks
   with BeforeAndAfterAll
   with BsonValueGenerators {
@@ -23,10 +24,16 @@ class BsonAdtCollectionSpec
   type FixtureParam = BsonAdtCollection
 
   override protected def withFixture(test: OneArgTest): Outcome = {
-    TestMongo.withDatabase("BsonAdtCodecProviderSpec") { db =>
-      TestMongo.withCollection("test", db) { collection =>
-        test(collection)
+    TestMongo.withDatabase("BsonAdtCollectionSpec") { db =>
+      println(s"CREATED DB: ${db.name}")
+      val res = TestMongo.withCollection("test", db) { collection =>
+        println(s"CREATED COLLECTION: ${collection.namespace}")
+        val res = test(collection)
+        println(s"DROPPING COLLECTION: ${collection.namespace}")
+        res
       }
+      println(s"DROPPING COLLECTION: ${db.name}")
+      res
     }
   }
 
@@ -36,7 +43,9 @@ class BsonAdtCollectionSpec
       val doc = bson ++ id
       test.insertOne(doc)
       val found = test.find(id).headOption
-      assert(found === Some(doc))
+      assert(found.isDefined,
+        s"Could not find inserted document in ${test.namespace}:\n${Bson.pretty(doc)}\nusing\n${Bson.inline(id)}")
+      assertEqualBson(found.get, doc)
     }
   }
 
@@ -51,7 +60,7 @@ class BsonAdtCollectionSpec
       val ids = docsAndIds.map(_._2)
       val cursor = test.find(Bson.obj("_id" -> Bson.obj("$in" -> ids)))
       val found = cursor.toVector
-      assert(found === docsWithIds)
+      assertEqualBson(BsonArray(found), BsonArray(docsWithIds))
     }
   }
 
@@ -68,7 +77,7 @@ class BsonAdtCollectionSpec
       val cursor = test.find(Bson.obj("_id" -> Bson.obj("$in" -> ids)))
       val foundSorted = cursor.toVector.sortBy(doc => (doc \ "_id").as[ObjectId])
       val expectedSorted = docsWithIds.sortBy(doc => (doc \ "_id").as[ObjectId])
-      assert(foundSorted === expectedSorted)
+      assertEqualBson(BsonArray(foundSorted), BsonArray(expectedSorted))
     }
   }
 }

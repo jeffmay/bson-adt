@@ -25,7 +25,7 @@ class BsonAdtCodec extends Codec[BsonValue] {
     case BsonBoolean(value)  => writer.writeBoolean(value)
     case BsonInt(value)      => writer.writeInt32(value)
     case BsonLong(value)     => writer.writeInt64(value)
-    case BsonNumber(value)   => writer.writeDouble(value)
+    case BsonDouble(value)   => writer.writeDouble(value)
     case BsonNull            => writer.writeNull()
     case BsonObjectId(value) => writer.writeObjectId(value)
     case BsonDate(value)     => writer.writeDateTime(value.getMillis)
@@ -58,7 +58,7 @@ class BsonAdtCodec extends Codec[BsonValue] {
     bsonType match {
       case BsonType.STRING             => BsonString(reader.readString())
       case BsonType.BOOLEAN            => BsonBoolean(reader.readBoolean())
-      case BsonType.DOUBLE             => BsonNumber(reader.readDouble())
+      case BsonType.DOUBLE             => BsonDouble(reader.readDouble())
       case BsonType.INT32              => BsonInt(reader.readInt32())
       case BsonType.INT64              => BsonLong(reader.readInt64())
       case BsonType.OBJECT_ID          => BsonObjectId(reader.readObjectId())

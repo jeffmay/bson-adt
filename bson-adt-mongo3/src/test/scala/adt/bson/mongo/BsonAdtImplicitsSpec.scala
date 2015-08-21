@@ -19,7 +19,7 @@ with BsonValueGenerators {
     }
   }
 
-  "BsonValue.toBson" should "write the same value that toJavaBson reads" in {
+  "JavaBsonValue.toBson" should "write the same value that toJavaBson reads" in {
     forAll() { (bson: JavaBsonValue) =>
       val adtBson = bson.toBson
       val result = adtBson.toJavaBson
