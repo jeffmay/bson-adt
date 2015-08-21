@@ -1,5 +1,8 @@
 Bson ADT
 ========
+<a href="https://travis-ci.org/jeffmay/bson-adt">
+<img src="https://travis-ci.org/jeffmay/bson-adt.svg" href="https://travis-ci.org/#" />
+</a>
 <table>
 <tr>
   <th>bson-adt-mongo-async</th>
@@ -40,7 +43,7 @@ In Bson, there are the following types (and more!):
 * `BsonInt` - An `Int`
 * `BsonLong` - A `Long`
 * `BsonNull` - The `null` reference value
-* `BsonNumber` - A floating point `Double`
+* `BsonDouble` - A floating point `Double`
 * `BsonObject` - A key-value pair map of `String` property names to `BsonValue`s
 * `BsonObjectId` - An `ObjectId` as [defined by Mongo](http://docs.mongodb.org/manual/reference/object-id/)
 * `BsonRegex` - A regular expression (ie. `Regex`)
