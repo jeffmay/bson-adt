@@ -40,8 +40,6 @@ trait BsonValueGenerators extends CommonGenerators {
     arbitrary[Long] map BsonLong
   }
 
-  implicit def arbBsonNumber: Arbitrary[BsonNumber] = arbBsonDouble.asInstanceOf[Arbitrary[BsonNumber]]
-
   implicit val arbBsonDouble: Arbitrary[BsonDouble] = Arbitrary {
     arbitrary[Double] map BsonDouble
   }
@@ -91,8 +89,6 @@ trait BsonValueGenerators extends CommonGenerators {
   implicit val shrinkBsonLong: Shrink[BsonLong] = Shrink { bson =>
     shrinkSameSign(bson.value) map BsonLong
   }
-
-  implicit def shrinkBsonNumber: Shrink[BsonNumber] = shrinkBsonDouble.asInstanceOf[Shrink[BsonNumber]]
 
   implicit val shrinkBsonDouble: Shrink[BsonDouble] = Shrink { bson =>
     Stream(BsonDouble(0))  // just try 0 and give up

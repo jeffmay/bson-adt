@@ -1,6 +1,6 @@
 package adt.bson.scalacheck
 
-import org.bson.types.Binary
+import org.bson.types.{Binary, ObjectId}
 import org.joda.time.DateTime
 import org.scalacheck.ops.time.joda.ImplicitJodaTimeGenerators
 import org.scalacheck.{Arbitrary, Shrink}
@@ -25,5 +25,11 @@ trait CommonGenerators extends ImplicitJodaTimeGenerators {
 
   implicit def arbBinary(implicit arbBytes: Arbitrary[Array[Byte]]): Arbitrary[Binary] = Arbitrary {
     arbBytes.arbitrary.map(new Binary(_))
+  }
+
+  implicit def arbObjectId(implicit arbDate: Arbitrary[java.util.Date]): Arbitrary[ObjectId] = Arbitrary {
+    for {
+      date <- arbDate.arbitrary
+    } yield new ObjectId(date)
   }
 }

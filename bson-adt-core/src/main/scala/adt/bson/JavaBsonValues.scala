@@ -22,6 +22,8 @@ trait JavaBsonValues {
   type JavaBsonObjectId  = org.bson.BsonObjectId
   type JavaBsonInt       = org.bson.BsonInt32
   type JavaBsonLong      = org.bson.BsonInt64
+  type JavaBsonDouble    = org.bson.BsonDouble
+  @deprecated("Use JavaBsonDouble. This will be removed in 1.4.0", "1.3.2")
   type JavaBsonNumber    = org.bson.BsonDouble
   type JavaBsonRegex     = org.bson.BsonRegularExpression
   type JavaBsonString    = org.bson.BsonString

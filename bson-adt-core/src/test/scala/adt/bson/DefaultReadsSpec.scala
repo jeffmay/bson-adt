@@ -59,7 +59,7 @@ with BsonValueGenerators {
   }
 
   it should "read BigDecimal properly" in {
-    forAll { (bson: BsonNumber) =>
+    forAll { (bson: BsonDouble) =>
       assert(BigDecimal(bson.as[Double]) == bson.as[BigDecimal])
     }
   }

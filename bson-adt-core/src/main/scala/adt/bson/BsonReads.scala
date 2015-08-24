@@ -251,9 +251,9 @@ trait DefaultBsonReads {
     }
   }
 
-  implicit object BsonReadsBsonNumber extends BsonReads[BsonNumber] {
-    override def reads(bson: BsonValue): BsonNumber = bson match {
-      case num: BsonNumber => num
+  implicit object BsonReadsBsonDouble extends BsonReads[BsonDouble] {
+    override def reads(bson: BsonValue): BsonDouble = bson match {
+      case num: BsonDouble => num
       case _ => throw new UnexpectedBsonException("error.expected.number", bson)
     }
   }

@@ -96,13 +96,7 @@ object BsonPrimitive {
   }
 }
 
-/**
- * TODO: Expand this out in the next major version.
- *
- * Soon all numeric [[BsonValue]]s extend from this trait.
- */
-sealed trait BsonNumber extends BsonValue
-
+@deprecated("Use BsonDouble instead.", "1.3.1")
 object BsonNumber {
 
   @deprecated("Use BsonDouble(value) instead.", "1.3.1")
@@ -128,7 +122,7 @@ case class BsonBoolean(value: Boolean) extends BsonPrimitive {
   @inline final override def Type: BsonType = BsonType.BOOLEAN
 }
 
-case class BsonDouble(value: Double) extends BsonPrimitive with BsonNumber {
+case class BsonDouble(value: Double) extends BsonPrimitive {
   override type ScalaType = Double
   @inline final override def Type: BsonType = BsonType.DOUBLE
 }
