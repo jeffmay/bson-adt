@@ -16,6 +16,9 @@ import scala.collection.mutable.ListBuffer
  *
  * If you want to provide your own [[Codec]], you have to create the [[org.bson.codecs.configuration.CodecRegistry]]
  * with your own [[org.bson.codecs.configuration.CodecProvider]]s, and place them before the [[BsonAdtCodecProvider]]
+ *
+ * However, writing your own [[Codec]]s is usually unnecessary, as you can convert a [[BsonValue]] to your
+ * desired result type using an [[adt.bson.BsonReads]] for that type.
  */
 object BsonAdtCodec extends BsonAdtCodec
 class BsonAdtCodec extends Codec[BsonValue] {
@@ -91,7 +94,7 @@ class BsonAdtCodec extends Codec[BsonValue] {
       case BsonType.UNDEFINED          =>
         reader.readUndefined()
         BsonUndefined("undefined in document")
-      case tpe => throw new UnsupportedOperationException(s"Unsupport BsonADT type: '${tpe.name}'")
+      case tpe => throw new UnsupportedOperationException(s"Unsupported BsonValue type: '${tpe.name}'")
     }
   }
 }

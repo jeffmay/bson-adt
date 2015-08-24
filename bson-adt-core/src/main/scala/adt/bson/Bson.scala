@@ -65,7 +65,7 @@ object Bson {
     inlineWithin: Option[Int] = Some(80),
     dateTimeFormat: DateTimeFormatter = ISODateTimeFormat.dateTime,
     binaryFormat: Array[Byte] => String = new String(_, "UTF-8"),
-    oidFormat: ObjectId => String = _.toString
+    oidFormat: ObjectId => String = oid => "ObjectId(\"" + oid.toString + "\")"
   ) {
 
     def inline: StringifyFormat = {
@@ -189,9 +189,7 @@ object Bson {
       case BsonDouble(x) =>
         buffer.append(x)
       case BsonObjectId(oid) =>
-        buffer.append("ObjectId(\"")
-        buffer.append(oid.toString)
-        buffer.append("\")")
+        buffer.append(format.oidFormat(oid))
       case BsonDate(datetime) =>
         buffer.append(datetime.toString(format.dateTimeFormat))
       case BsonNull =>

@@ -19,11 +19,6 @@ object Diff {
     differ.diff_cleanupSemantic(diffs)
     diffs.map(d => Diff(d.text, Diff.Op.withName(d.operation.name()))).toSeq
   }
-
-//  def byLine(diffs: Seq[Diff]): Seq[(String, String)] = {
-//    println(diffs)
-//    Seq.empty
-//  }
 }
 
 case class Diff(text: String, op: Diff.Op.Value)

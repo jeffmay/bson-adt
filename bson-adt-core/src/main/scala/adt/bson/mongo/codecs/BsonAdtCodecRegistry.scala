@@ -12,8 +12,10 @@ import org.bson.codecs.configuration.{CodecProvider, CodecConfigurationException
  *
  * If you want the ability to add more [[Codec]]s to a registry, then you should consider creating
  * a [[CodecRegistry]] using [[org.bson.codecs.configuration.CodecRegistries.fromProviders]] and
- * passing the [[BsonAdtCodecProvider]]. But this can be avoided by mapping from [[BsonValue]] to
- * your desired result type using an [[adt.bson.BsonReads]].
+ * passing the [[BsonAdtCodecProvider]].
+ *
+ * However, writing your own [[Codec]]s is usually unnecessary, as you can convert a [[BsonValue]] to your
+ * desired result type using an [[adt.bson.BsonReads]] for that type.
  */
 object BsonAdtCodecRegistry extends BsonAdtCodecRegistry(Seq(new DocumentCodecProvider, new ValueCodecProvider))
 class BsonAdtCodecRegistry(providers: Seq[CodecProvider]) extends CodecRegistry {
