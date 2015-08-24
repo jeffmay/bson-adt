@@ -83,7 +83,9 @@ class BsonAdtAsyncCollectionSpec
       val ids = docsAndIds.map(_._2)
       val cursor = test.find(Bson.obj("_id" -> Bson.obj("$in" -> ids)))
       val found = cursor.sequence().futureValue
-      assertEqualBson(BsonArray(found), BsonArray(docsWithIds))
+      val foundSorted = found.sortBy(doc => (doc \ "_id").as[ObjectId])
+      val expectedSorted = docsWithIds.sortBy(doc => (doc \ "_id").as[ObjectId])
+      assertEqualBson(BsonArray(foundSorted), BsonArray(expectedSorted))
     }
   }
 }

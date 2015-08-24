@@ -32,7 +32,7 @@ class BsonAdtCollectionSpec
         println(s"DROPPING COLLECTION: ${collection.namespace}")
         res
       }
-      println(s"DROPPING COLLECTION: ${db.name}")
+      println(s"DROPPING DB: ${db.name}")
       res
     }
   }
