@@ -12,7 +12,7 @@ with BsonValueGenerators {
     forAll() { (bson: BsonValue) =>
       // TODO: Add Bson.parse for cross serialization?
       val example = Bson.pretty(bson)  // should not throw an exception
-//      println(example)  // for checking the output for validity
+      println(example)  // for checking the output for validity
     }
   }
 }

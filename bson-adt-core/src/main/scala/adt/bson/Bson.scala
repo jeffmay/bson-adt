@@ -19,11 +19,11 @@ object Bson {
    * {{{
    *   BsonObject(Map(
    *      "key1", BsonString("value"),
-   *      "key2" -> BsonNumber(123),
+   *      "key2" -> BsonDouble(123),
    *      "key3" -> BsonObject(Map("key31" -> BsonString("value31")))
    *   )) == Bson.obj( "key1" -> "value", "key2" -> 123, "key3" -> obj("key31" -> "value31"))
    *
-   *   BsonArray(BsonString("value"), BsonNumber(123), BsonBoolean(true)) == Bson.arr( "value", 123, true )
+   *   BsonArray(BsonString("value"), BsonDouble(123), BsonBoolean(true)) == Bson.arr( "value", 123, true )
    * }}}
    *
    * There is an implicit conversion from any Type with a [[BsonWrites]] to [[BsonValueWrapper]]
@@ -65,7 +65,7 @@ object Bson {
     inlineWithin: Option[Int] = Some(80),
     dateTimeFormat: DateTimeFormatter = ISODateTimeFormat.dateTime,
     binaryFormat: Array[Byte] => String = new String(_, "UTF-8"),
-    oidFormat: ObjectId => String = _.toString
+    oidFormat: ObjectId => String = oid => "ObjectId(\"" + oid.toString + "\")"
   ) {
 
     def inline: StringifyFormat = {
@@ -189,9 +189,7 @@ object Bson {
       case BsonDouble(x) =>
         buffer.append(x)
       case BsonObjectId(oid) =>
-        buffer.append("ObjectId(\"")
-        buffer.append(oid.toString)
-        buffer.append("\")")
+        buffer.append(format.oidFormat(oid))
       case BsonDate(datetime) =>
         buffer.append(datetime.toString(format.dateTimeFormat))
       case BsonNull =>

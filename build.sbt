@@ -2,7 +2,7 @@
 lazy val commonRootSettings = Seq(
   organization := "me.jeffmay",
   organizationName := "Jeff May",
-  version := "1.3.1",
+  version := "1.3.2",
   crossScalaVersions := Seq("2.11.6", "2.10.4")
 )
 
@@ -32,11 +32,14 @@ lazy val common = commonRootSettings ++ Seq(
     "-encoding", "UTF-8"
   ),
 
+  resolvers += "jeffmay at bintray" at "https://dl.bintray.com/jeffmay/maven",
+
   libraryDependencies ++= Seq(
     "joda-time" % "joda-time" % "2.8",
     "org.joda" % "joda-convert" % "1.7",
     "org.scalacheck" %% "scalacheck" % "1.11.3" % "test",
-    "org.scalatest" %% "scalatest" % "2.2.4" % "test"
+    "org.scalatest" %% "scalatest" % "2.2.4" % "test",
+    "me.jeffmay" %% "scalacheck-ops" % "1.1.0" % "test"
   ),
 
   // disable compilation of ScalaDocs, since this always breaks on links

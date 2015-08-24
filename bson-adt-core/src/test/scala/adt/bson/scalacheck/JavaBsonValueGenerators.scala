@@ -35,8 +35,8 @@ trait JavaBsonValueGenerators extends CommonGenerators {
     arbitrary[Long] map (new JavaBsonLong(_))
   }
 
-  implicit val arbJavaBsonNumber: Arbitrary[JavaBsonNumber] = Arbitrary {
-    arbitrary[Double] map (new JavaBsonNumber(_))
+  implicit val arbJavaBsonDouble: Arbitrary[JavaBsonDouble] = Arbitrary {
+    arbitrary[Double] map (new JavaBsonDouble(_))
   }
 
   implicit val arbJavaBsonString: Arbitrary[JavaBsonString] = Arbitrary {
@@ -86,8 +86,8 @@ trait JavaBsonValueGenerators extends CommonGenerators {
     shrinkSameSign(bson.longValue()) map (new JavaBsonLong(_))
   }
 
-  implicit val shrinkJavaBsonNumber: Shrink[JavaBsonNumber] = Shrink { bson =>
-    Stream(new JavaBsonNumber(0))  // just try 0 and give up
+  implicit val shrinkJavaBsonDouble: Shrink[JavaBsonDouble] = Shrink { bson =>
+    Stream(new JavaBsonDouble(0))  // just try 0 and give up
   }
 
   implicit val shrinkJavaBsonString: Shrink[JavaBsonString] = Shrink { bson =>
@@ -122,7 +122,7 @@ trait JavaBsonValueGenerators extends CommonGenerators {
     case it: JavaBsonBoolean   => shrink(it)
     case it: JavaBsonInt       => shrink(it)
     case it: JavaBsonLong      => shrink(it)
-    case it: JavaBsonNumber    => shrink(it)
+    case it: JavaBsonDouble    => shrink(it)
     case it: JavaBsonString    => shrink(it)
     case it: JavaBsonObjectId  => shrink(it)
     case it: JavaBsonBinary    => shrink(it)
