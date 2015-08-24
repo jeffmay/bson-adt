@@ -3,6 +3,7 @@ Bson ADT
 <a href="https://travis-ci.org/jeffmay/bson-adt">
 <img src="https://travis-ci.org/jeffmay/bson-adt.svg" href="https://travis-ci.org/#" />
 </a>
+<a href='https://coveralls.io/github/jeffmay/bson-adt?branch=master'><img src='https://coveralls.io/repos/jeffmay/bson-adt/badge.svg?branch=master&service=github' alt='Coverage Status' /></a>
 <table>
 <tr>
   <th>bson-adt-mongo-async</th>
