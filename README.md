@@ -23,10 +23,30 @@ Bson ADT
 </tr>
 </table>
 
-A closed generic algebraic data type for Bson serialization and deserialization in Scala
+A closed generic algebraic data type for Bson serialization and deserialization in Scala that works with almost all
+Mongo drivers.
 
 This library works a lot like the [play-json](https://www.playframework.com/documentation/2.3.x/ScalaJson) library,
 but for BSON, the document storage format used by [MongoDB](http://docs.mongodb.org/manual/core/introduction/).
+
+Supported Drivers
+=================
+
+- Mongo 2.4.x-2.6.x using the Java MongoDB or Casbah
+- Mongo 3.0.x using the Java MongoDB async or synchronous driver
+
+I was considering writing one for Reactive Mongo, but I decided to support Mongo 3 async driver instead, but I would
+love submissions.
+
+Overview
+========
+
+This project is broken into 2 parts:
+- the core ADT with Play Json style `BsonReads` and `BsonWrites`
+- Mongo driver adapters
+ 
+The ADT is same regardless of what adapter you choose, so that you can reuse the same serialization logic regardless
+of the version of mongo that you use.
 
 What's an Algebraic Data Type?
 ==============================
@@ -149,7 +169,24 @@ decide how they want to handle each case of failure.
 
 And, of course, `BsonReads[X]` will implicitly allow reading a `Map[String, X]` and any subclass of `Traversable[X]`
 
-And last, but not least, is the `BsonFormat`. It is both a `BsonWrites` and a `BsonReads` and the rules o
+And last, but not least, is the `BsonFormat`. It is both a `BsonWrites` and a `BsonReads`.
+
+Mongo 3 Syntax
+==============
+
+Mongo 3 comes with its own closed ADT, however, it is written in Java, so you don't share the same benefits of a
+sealed trait and case classes that produce a compiler warning on missing cases. Additionally, the logic for
+serialization lives within a mutable map of class objects, and doesn't share the same granularity as implicit object
+resolution in Scala.
+
+To support Mongo 3, the library provides a `BsonAdtCodec` which works for any `BsonValue` or subclass using a single
+match statement, rather than checking a mutable map. The result is a `BsonValue` that can be converted into your
+specific type using a `BsonReads` instead of a `BsonCodec`, however, if you prefer to use the mutable map style,
+there is an implicit conversion from `BsonFormat` to `BsonCodec`.
+
+The library also wraps the Mongo 3 drivers to provide a seamless Scala interface. Normal functions are implicitly
+converted into `MongoFunction`s, methods with callback arguments are converted to return `Future`s, and the
+collections all return `BsonValue` or `BsonObject` where appropriate.
 
 Casbah Syntax
 =============
@@ -194,17 +231,17 @@ collection.findOne(MongoDBObject("_id" -> ???)) map {
 While this gives you access to the underlying code for potential performance benefits or writing helper code,
 it is probably best to just convert to `BsonValue` and operate on that. It will be safer and more reusable.
 
-
-MongoDB Syntax
+Mongo 2 Syntax
 ==============
 
 If you are operating directly with MongoDB, you can use `import adt.bson.mongodb.syntax._` instead. It is just
 like the Casbah Syntax (see above section) except that it returns the MongoDB driver version of `BasicDBObject`
 and `BasicDBList`.
 
-This mainly exists so that you can exclude the transitive dependency of Casbah.
+This mainly exists so that you can exclude the transitive dependency of Casbah and use Mongo 2 the driver directly.
+
 
 ReactiveMongo Syntax
 ====================
 
-Coming soon...
+Coming someday... (hopefully).
